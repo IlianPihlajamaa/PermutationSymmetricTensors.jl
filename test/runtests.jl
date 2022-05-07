@@ -1,4 +1,4 @@
-using Test, PermutationSymmetricTensors # This load both the test suite and our MyAwesomePackage
+using Test, PermutationSymmetricTensors, TupleTools, Random 
 
 
 @testset "Creation" begin
@@ -6,6 +6,7 @@ using Test, PermutationSymmetricTensors # This load both the test suite and our 
         for N in [2, 5, 10]
             for dim in [2, 5, 10]
                 for func in [rand, ones, zeros]
+
                     a = func(SymmetricTensor{T, N, dim})
                     @test length(a.data) ==  symmetric_tensor_size(N, dim)
                     @test length(a) == N^dim
@@ -32,3 +33,35 @@ end
     end
 end
 
+
+@testset "getindex" begin
+    for N in [2, 5, 10]
+        for dim in [2, 5, 6]
+            a = rand(SymmetricTensor{Float64, N, dim})
+            for i = 1:100
+                idx = sort(rand(1:N, dim))
+                idx_shuffle = shuffle(idx)
+                idxt = tuple(idx...)
+                idx_shufflet = tuple(idx_shuffle...)
+                @test a[idxt...] == a[idx_shufflet...]
+            end
+        end
+    end
+end
+
+@testset "setindex!" begin
+    for N in [2, 5, 10]
+        for dim in [2, 5, 6]
+            a = rand(SymmetricTensor{Float64, N, dim})
+            for i = 1:100
+                idx = sort(rand(1:N, dim))
+                idx_shuffle = shuffle(idx)
+                idxt = tuple(idx...)
+                idx_shufflet = tuple(idx_shuffle...)
+                val = rand(Float64)
+                a[idx_shufflet...] = val
+                @test a[idxt...] == val
+            end
+        end
+    end
+end
