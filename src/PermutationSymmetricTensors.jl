@@ -4,8 +4,8 @@ export SymmetricTensor
 export find_full_indices
 export find_degeneracy
 export symmetric_tensor_size
-
 using  TupleTools, Random
+
 
 struct SymmetricTensor{T, N, dim} <: AbstractArray{T, dim}
     data::Array{T, 1}
@@ -54,15 +54,16 @@ ndims(::Type{SymmetricTensor{T, N, dim}} where {T, dim, N}) = dim
 import Base.axes
 axes(::Type{SymmetricTensor{T, N, dim}} where {T, dim, N}) = ntuple(x->Base.OneTo(Val(N)), dim)
 
-# import Base.copyto!
-# copyto!(dest::SymmetricTensor, args...) = copyto!(dest.data, args...)
 
 import Base.iterate
 @inline function iterate(A::SymmetricTensor{T, N, dim}, i=1) where {T, N, dim}
     (i % UInt) - 1 < length(A) ? (@inbounds A[CartesianIndices(A)[i]], i + 1) : nothing
 end
 
-#Similar
+import Base.similar
+function similar(A::SymmetricTensor{T, N, dim}) where {T, N, dim}
+    return zeros(typeof(A))
+end
 
 function symmetric_tensor_size(N, dim)
     return binomial(N-1+dim, dim)

@@ -13,6 +13,9 @@ using Test, PermutationSymmetricTensors, TupleTools, Random
                     @test sizeof(a) > sizeof(a.data)
                     @test ndims(a) == dim
                     @test axes(a,1) == Base.OneTo(N)
+
+                    b = similar(a)
+                    @test axes(a) == axes(b)
                 end
             end
         end
@@ -25,10 +28,11 @@ end
             a = ones(SymmetricTensor{BigInt, N, dim})
             d = find_degeneracy(a)
             @test sum(d.data.*a.data) == length(a)
-
             a = rand(SymmetricTensor{Float64, N, dim})
             d = find_degeneracy(a)
             @test sum(a) ≈ sum(d.data.*a.data)
+
+            
         end
     end
 end
