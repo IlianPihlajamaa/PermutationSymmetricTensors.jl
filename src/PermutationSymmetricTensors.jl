@@ -7,7 +7,6 @@ export symmetric_tensor_size
 
 using  TupleTools, Random
 
-
 struct SymmetricTensor{T, N, dim} <: AbstractArray{T, dim}
     data::Array{T, 1}
     linear_indices::Array{Array{Int64, 1}, 1}
