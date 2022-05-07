@@ -6,12 +6,30 @@ export find_degeneracy
 export symmetric_tensor_size
 using  TupleTools, Random
 
+"""
+SymmetricTensor{T, N, dim} <: AbstractArray{T, dim} 
 
+This is a symmetric tensor object of dimension dim, with N elements of type T in each dimension. 
+"""
 struct SymmetricTensor{T, N, dim} <: AbstractArray{T, dim}
     data::Array{T, 1}
     linear_indices::Array{Array{Int64, 1}, 1}
 end
 
+"""
+SymmetricTensor(data::Array{T, 1}, ::Val{N}, ::Val{dim}) where {T, N, dim}
+
+Low level constructor for the SymmetricTensor type. 
+
+    Example:
+
+    N = 10
+    dim = 3
+    Ndata = symmetric_tensor_size(N, dim)
+    T = Float64
+    data = rand(T, Ndata)
+    SymmetricTensor(data, Val(N), Val(dim))
+"""
 function SymmetricTensor(data::Array{T, 1}, ::Val{N}, ::Val{dim}) where {T, N, dim}
     @assert typeof(N) == typeof(dim) == Int
     if !check_correct_size(length(data), N, dim)
@@ -69,28 +87,32 @@ function symmetric_tensor_size(N, dim)
     return binomial(N-1+dim, dim)
 end
 
+
+"""
 function check_correct_size(N_elements, N, dim)
-    if N_elements == symmetric_tensor_size(N, dim)
-        return true
-    else
-        return false
-    end
+    checks if the number of elements corresponds to N and dim.
+    returns N_elements == symmetric_tensor_size(N, dim)
+"""
+function check_correct_size(N_elements, N, dim)
+    return  N_elements == symmetric_tensor_size(N, dim)
 end
 
 import Base.getindex
 """
-generated expression, executes
+function getindex(A::SymmetricTensor{T, N, dim}, I::Int64...) where {T, dim, N}
+    This is a custom getindex method for SymmetricTensor types.
+    It is implemented with a generated function, for dim = 3, the following code will be executed:
 
-function get_index(A::SymmetricTensor{N, dim, T}, I::Int64...) where {T, dim, N}
-    I2 = TupleTools.sort(I, rev = true)     
-    ind = 0
-    @inbounds begin 
-        ind += (A.linear_indices[1])[I2[1]]
-        ind += (A.linear_indices[2])[I2[2]]
-        ind += (A.linear_indices[3])[I2[3]]
-        return A.data[ind]
+    function get_index(A::SymmetricTensor{N, dim, T}, I::Int64...) where {T, dim, N}
+        I2 = TupleTools.sort(I, rev = true)     
+        ind = 0
+        @inbounds begin 
+            ind += (A.linear_indices[1])[I2[1]]
+            ind += (A.linear_indices[2])[I2[2]]
+            ind += (A.linear_indices[3])[I2[3]]
+            return A.data[ind]
+        end
     end
-end
 """
 @generated function getindex(A::SymmetricTensor{T, N, dim}, I::Int64...) where {T, dim, N}
     if length(I) == 1
@@ -111,18 +133,20 @@ end
 import Base.setindex!
 
 """
-generated expression, for dim=3, executes
+function setindex!(A::SymmetricTensor{T, N, dim}, value, I::Int64...) where {T, dim, N}
+    This is a custom setindex! method for SymmetricTensor types.
+    It is implemented with a generated function, for dim = 3, the following code will be executed:
 
-function set_index!(A::SymmetricTensor{N, dim, T}, value, I::Int64...) where {T, dim, N}
-    I2 = TupleTools.sort(I, rev = true)     
-    ind = 0
-    @inbounds begin 
-        ind += (A.linear_indices[1])[I2[1]]
-        ind += (A.linear_indices[2])[I2[2]]
-        ind += (A.linear_indices[3])[I2[3]]
-        A.data[ind] = value
+    function set_index!(A::SymmetricTensor{N, dim, T}, value, I::Int64...) where {T, dim, N}
+        I2 = TupleTools.sort(I, rev = true)     
+        ind = 0
+        @inbounds begin 
+            ind += (A.linear_indices[1])[I2[1]]
+            ind += (A.linear_indices[2])[I2[2]]
+            ind += (A.linear_indices[3])[I2[3]]
+            A.data[ind] = value
+        end
     end
-end
 """
 @generated function setindex!(A::SymmetricTensor{T, N, dim}, value, I::Int64...) where {T, dim, N}
     if length(I) == 1
@@ -148,18 +172,39 @@ function find_full_indices(N, dim)
 end
 
 """
-Generated function. For dim=3, evaluates:
+function find_full_indices(N, dim)
+
+    Returns an ordered array of tuples of indices (i1, i2, i3, ..., i{dim}) such that 
+    i1 >= i2 >= i3 ... >= i{dim}. This can be used to find the cartesian index that 
+    corresponds to a linear index of a SymmetricTensor{T, N, dim}. It will automatically
+    choose an appropriate integer type that to minimize the amount of required storage.
+
+    Example:
+    julia> find_full_indices(3, 3)
+    10-element Vector{Tuple{Int8, Int8, Int8}}:
+    (1, 1, 1)
+    (2, 1, 1)
+    (3, 1, 1)
+    (2, 2, 1)
+    (3, 2, 1)
+    (3, 3, 1)
+    (2, 2, 2)
+    (3, 2, 2)
+    (3, 3, 2)
+    (3, 3, 3)
+
+    It is implemented with a generated function, for dim = 3, the following code will be executed:
     function _find_full_indices(N, Val(3))
-    full_indices = NTuple{3, Int16}[]
-    for i3 = 1:N
-        for i2 = i3:N
-            for i1 = i2:N
-                push!(full_indices, ((i1..., i2)..., i3))
+        full_indices = NTuple{3, Int16}[]
+        for i3 = 1:N
+            for i2 = i3:N
+                for i1 = i2:N
+                    push!(full_indices, ((i1..., i2)..., i3))
+                end
             end
         end
+        full_indices
     end
-    full_indices
-end
 """
 @generated function find_full_indices(T, N, ::Val{dim}) where {dim}
     if dim == 1
@@ -183,7 +228,7 @@ end
 
 """
 generated function:
-generates the following code for dim = 3
+Generates the following code for dim = 3:
     function find_linear_index_array(N::Int, ::Val{3})
         idim_contribution_array = zeros(Int64, N)
         contribution = 0
@@ -242,21 +287,25 @@ end
 
 
 """
-example 
-reps = zeros(Int, 8)
-tup = (1,3,3,5,5,5,5,7)
-find_N_repetitions_sorted!(reps, tup)
+function find_N_repetitions_sorted!(reps::Vector{T}, tup) where T<:Integer
+    Given a tuple `tup` it will find the number of times a some element of the tuple occurs
+    i times in that tuple. It will store the result in the Vector reps at index i.
 
-julia> find_N_repetitions_sorted!(reps, tup)
-8-element Vector{Int64}:
- 2
- 1
- 0
- 1
- 0
- 0
- 0
- 0
+    Example: 
+    reps = zeros(Int, 8)
+    tup = (1, 3, 3, 5, 5, 5, 5, 7)
+    find_N_repetitions_sorted!(reps, tup)
+
+    julia> find_N_repetitions_sorted!(reps, tup)
+    8-element Vector{Int64}:
+    2
+    1
+    0
+    1
+    0
+    0
+    0
+    0
  """
 function find_N_repetitions_sorted!(reps::Vector{T}, tup) where T<:Integer
     reps .= 0
@@ -278,9 +327,51 @@ find_degeneracy(N::Int, dim::Int) = find_degeneracy(N, dim, find_full_indices(N,
 find_degeneracy(::SymmetricTensor{T, N, dim}) where {dim, N, T} = find_degeneracy(N, dim, find_full_indices(N, dim))
 
 """
-function find_degeneracy(::SymmetricTensor{T, N, dim}, full_indices) where {dim, N, T}
-    returns a SymmetricTensor{Int32, N, dim} of which each element specifies the number of index permutations that point to the same element. 
-    For a symmetric matrix for example, this would return a matrix filled with 2s with one on the diagonal.
+function find_degeneracy(N::Int, dim::Int) 
+function find_degeneracy(::SymmetricTensor{T, N, dim}) where {dim, N, T} 
+function find_degeneracy(N, dim, full_indices)
+
+    returns a SymmetricTensor{Int64, N, dim} of which each element specifies the number of index permutations that point to the same element. 
+    for efficiency can be called with the result of `find_full_indices(N, dim)` as a third argument.
+
+    Examples: 
+    julia> find_degeneracy(3, 3)
+    3×3×3 SymmetricTensor{Int64, 3, 3}:
+    [:, :, 1] =
+    1  3  3
+    3  3  6
+    3  6  3
+
+    [:, :, 2] =
+    3  3  6
+    3  1  3
+    6  3  3
+
+    [:, :, 3] =
+    3  6  3
+    6  3  3
+    3  3  1
+
+    julia> a = rand(SymmetricTensor{Float64, 2,4});
+
+    julia> find_degeneracy(a)
+    2×2×2×2 SymmetricTensor{Int64, 2, 4}:
+    [:, :, 1, 1] =
+    1  4
+    4  6
+
+    [:, :, 2, 1] =
+    4  6
+    6  4
+
+    [:, :, 1, 2] =
+    4  6
+    6  4
+
+    [:, :, 2, 2] =
+    6  4
+    4  1
+
 """
 function find_degeneracy(N, dim, full_indices)
     mult = zeros(SymmetricTensor{Int64, N, dim}) 
@@ -299,6 +390,5 @@ function find_degeneracy(N, dim, full_indices)
     end
     return mult
 end
-
 
 end # 

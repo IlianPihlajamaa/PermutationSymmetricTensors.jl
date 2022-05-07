@@ -13,7 +13,6 @@ using Test, PermutationSymmetricTensors, TupleTools, Random
                     @test sizeof(a) > sizeof(a.data)
                     @test ndims(a) == dim
                     @test axes(a,1) == Base.OneTo(N)
-
                     b = similar(a)
                     @test axes(a) == axes(b)
                 end
