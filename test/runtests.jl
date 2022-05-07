@@ -1,6 +1,5 @@
 using Test, PermutationSymmetricTensors # This load both the test suite and our MyAwesomePackage
 
-out = plusTwo(3)
+a = rand(SymmetricTensor{Float64, 10, 2})
 
-@test out == 5 
-@test out == 2+1+2               # This is the actual test condition. You can add as many tests as you wish.
+@test length(a.data) ==  symmetric_tensor_size(10, 2)

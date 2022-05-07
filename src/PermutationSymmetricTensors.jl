@@ -3,6 +3,7 @@ module PermutationSymmetricTensors
 export SymmetricTensor
 export find_full_indices
 export find_degeneracy
+export symmetric_tensor_size
 
 using  TupleTools, Random
 
