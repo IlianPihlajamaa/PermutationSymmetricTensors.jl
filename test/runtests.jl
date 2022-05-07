@@ -2,4 +2,5 @@ using Test, PermutationSymmetricTensors # This load both the test suite and our 
 
 out = plusTwo(3)
 
-@test out == 5               # This is the actual test condition. You can add as many tests as you wish.
+@test out == 5 
+@test out == 2+1+2               # This is the actual test condition. You can add as many tests as you wish.
