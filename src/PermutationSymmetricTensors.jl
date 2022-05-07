@@ -3,7 +3,7 @@ module PermutationSymmetricTensors
 export SymmetricTensor
 export find_full_indices
 export find_degeneracy
-export symmetric_tensor_size
+export find_symmetric_tensor_size
 using  TupleTools, Random
 
 """
@@ -25,7 +25,7 @@ Low level constructor for the SymmetricTensor type.
 
     N = 10
     dim = 3
-    Ndata = symmetric_tensor_size(N, dim)
+    Ndata = find_symmetric_tensor_size(N, dim)
     T = Float64
     data = rand(T, Ndata)
     SymmetricTensor(data, Val(N), Val(dim))
@@ -42,19 +42,19 @@ end
 import Base.zeros
 function zeros(::Type{SymmetricTensor{T, N, dim}}) where {N, dim, T}
     @assert typeof(N) == typeof(dim) == Int
-    return SymmetricTensor(zeros(T, symmetric_tensor_size(N, dim)), Val(N), Val(dim))
+    return SymmetricTensor(zeros(T, find_symmetric_tensor_size(N, dim)), Val(N), Val(dim))
 end
 
 import Base.rand
 function rand(::Type{SymmetricTensor{T, N, dim}}) where {N, dim, T}
     @assert typeof(N) == typeof(dim) == Int
-    return SymmetricTensor(rand(T, symmetric_tensor_size(N, dim)), Val(N), Val(dim))
+    return SymmetricTensor(rand(T, find_symmetric_tensor_size(N, dim)), Val(N), Val(dim))
 end
 
 import Base.ones
 function ones(::Type{SymmetricTensor{T, N, dim}}) where {N, dim, T}
     @assert typeof(N) == typeof(dim) == Int
-    return SymmetricTensor(ones(T, symmetric_tensor_size(N, dim)), Val(N), Val(dim))
+    return SymmetricTensor(ones(T, find_symmetric_tensor_size(N, dim)), Val(N), Val(dim))
 end
 
 import Base.sizeof
@@ -83,7 +83,7 @@ function similar(A::SymmetricTensor{T, N, dim}) where {T, N, dim}
     return zeros(typeof(A))
 end
 
-function symmetric_tensor_size(N, dim)
+function find_symmetric_tensor_size(N, dim)
     return binomial(N-1+dim, dim)
 end
 
@@ -91,10 +91,10 @@ end
 """
 function check_correct_size(N_elements, N, dim)
     checks if the number of elements corresponds to N and dim.
-    returns N_elements == symmetric_tensor_size(N, dim)
+    returns N_elements == find_symmetric_tensor_size(N, dim)
 """
 function check_correct_size(N_elements, N, dim)
-    return  N_elements == symmetric_tensor_size(N, dim)
+    return  N_elements == find_symmetric_tensor_size(N, dim)
 end
 
 import Base.getindex

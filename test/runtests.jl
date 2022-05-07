@@ -8,7 +8,7 @@ using Test, PermutationSymmetricTensors, TupleTools, Random
                 for func in [rand, ones, zeros]
 
                     a = func(SymmetricTensor{T, N, dim})
-                    @test length(a.data) ==  symmetric_tensor_size(N, dim)
+                    @test length(a.data) ==  find_symmetric_tensor_size(N, dim)
                     @test length(a) == N^dim
                     @test sizeof(a) > sizeof(a.data)
                     @test ndims(a) == dim
