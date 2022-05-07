@@ -83,9 +83,19 @@ function similar(A::SymmetricTensor{T, N, dim}) where {T, N, dim}
     return zeros(typeof(A))
 end
 
+
+"""
 function find_symmetric_tensor_size(N, dim)
-    return binomial(N-1+dim, dim)
-end
+
+    Returns the number of elements of a symmetric tensor of dimension dim of N elements in each dimension. 
+    The results is given by binomial(N-1+dim, dim).
+
+    Example:
+    julia> find_symmetric_tensor_size(20, 6)
+    177100
+"""
+find_symmetric_tensor_size(N, dim) = binomial(N-1+dim, dim)
+
 
 
 """
