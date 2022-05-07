@@ -1,0 +1,1 @@
+# PermutationSymmetricTensors.jl
