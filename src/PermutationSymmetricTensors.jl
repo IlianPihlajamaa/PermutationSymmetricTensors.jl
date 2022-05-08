@@ -97,7 +97,6 @@ function find_symmetric_tensor_size(N, dim)
 find_symmetric_tensor_size(N, dim) = binomial(N-1+dim, dim)
 
 
-
 """
 function check_correct_size(N_elements, N, dim)
     checks if the number of elements corresponds to N and dim.
