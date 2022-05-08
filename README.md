@@ -269,7 +269,7 @@ julia> 8^8
 
 There are two packages with comparable functionality, [SymmetricTensors.jl](https://github.com/iitis/SymmetricTensors.jl) and [Tensors.jl](https://github.com/Ferrite-FEM/Tensors.jl). 
 
-Tensors.jl provides immutable, stack-allocated 1-, 2-, and 4-dimensional symmetric tensors. This package is preferable if the tensors are small, that is, when they have less than roughly 100 elements. 
+Tensors.jl provides immutable, stack-allocated 1-, 2-, and 4-dimensional symmetric tensors. This package is preferable if the tensors are small, that is, when they have fewer than roughly 100 elements. It is also more full-featured, implementing many different operations on the tensors instead of just the basic functionality.
 
 SymmetricTensors.jl provides a SymmetricTensor type just like the one exported in this package. Its implementation is based on a blocked memory pattern, sacrificing performance for cache locality. Some benchmarks:
 
