@@ -10,12 +10,6 @@ PermutationSymmetricTensors provides a framework for implementing multidimension
 
 This package exports basic constructors of `SymmetricTensor`s, and a few convenience functions for working with them. The main advantage of using a `SymmetricTensor` is that it requires much less memory to store than the full array would. 
 
-A `SymmetricTensor{T, N, dim}` `a` contains two fields. 
- - `a.data` is a `Vector{T}` that stores all the elements of the symmetric tensor. Its length is given by `L = binomial(N-1+dim, dim)`, or more conveniently `L = find_symmetric_tensor_size(N, dim)`. 
- - `a.linear_indices` is a `Vector{Vector{Int64}}` that is needed when `a` is indexed. The outer vector has length `length(a.linear_indices)` equal to `dim`. The length elements of that vector are equal to `N`. 
- 
- Methods such as `getindex` and `setindex!` for operating with `SymmetricTensors` are implemented using generated functions.
-
 ## Construction
 
 A `SymmetricTensor` can conveniently be constructed using `zeros`, `ones`, and `rand`. 
@@ -264,6 +258,14 @@ julia> @time sum(a.data .* degeneracy.data) # would be even more efficient with 
 julia> 8^8
 16777216
 ```
+
+## Implementation
+
+A `SymmetricTensor{T, N, dim}` `a` contains two fields. 
+ - `a.data` is a `Vector{T}` that stores all the elements of the symmetric tensor. Its length is given by `L = binomial(N-1+dim, dim)`, or more conveniently `L = find_symmetric_tensor_size(N, dim)`. 
+ - `a.linear_indices` is a `Vector{Vector{Int64}}` that is needed when `a` is indexed. The outer vector has length `length(a.linear_indices)` equal to `dim`. The length elements of that vector are equal to `N`. To index a `SymmetricTensor{Float64, 50, 3}` at indices `I = (21, 45, 21)`, first the indices are sorted in descending order, which is stored in a new tuple `I2`. Then the linear index is found by evaluating index = (A.linear_indices[1])[I2[1]] + (A.linear_indices[2])[I2[2]] + (A.linear_indices[3])[I2[3]]. This linear index can then be used to get the value: `val = a.data[index]`.
+ 
+Methods such as `getindex` and `find_full_indices` for operating with `SymmetricTensors` are implemented using generated functions.
 
 ## See also
 
