@@ -7,9 +7,11 @@ PermutationSymmetricTensors provides a framework for implementing multidimension
 
 This package exports basic constructors of `SymmetricTensor`s, and a few convenience functions for working with them. The main advantage of using a `SymmetricTensor` is that it requires much less memory to store than the full array would. 
 
+A `SymmetricTensor{T, N, dim}` `a` contains two fields. `a.data` is a `Vector{T}` that stores all the elements of the symmetric tensor. Its length is given by `L = binomial(N-1+dim, dim)`, or more conveniently `L = find_symmetric_tensor_size(3, 3)`. `a.linear_indices` is a `Vector{Vector{Int64}}` that is needed when `a` is indexed. Methods such as `getindex` and `setindex!` for operating with `SymmetricTensors` are implemented using generated functions.
+
 ## Construction
 
-A `SymmetricTensor` can conveniently be constructed using `zeros`, `ones`, and `rand`. Alternatively, it is possible to construct one directly if the underlying data is available.
+A `SymmetricTensor` can conveniently be constructed using `zeros`, `ones`, and `rand`. 
 
 ```julia
 julia> using PermutationSymmetricTensors
@@ -48,12 +50,13 @@ julia>  c = ones(SymmetricTensor{Bool, 2, 2})
 ```
 Since the tensor is parametrized with its size, it is not necessary to provide any other arguments to `zeros`, `ones`, or `rand`.
 
-In order to create a `SymmetricTensor` from a `Vector{T}`, make sure that the length of that vector is correct. The function `find_symmetric_tensor_size(N, dim)` is useful for that. Given the number of elements in each dimension `N` and the number of dimensions `dim`, it returns the number of distinct elements that a `SymmetricTensor{T, N, dim}` needs to store.
+In order to create a `SymmetricTensor` from data in a `Vector{T}` directly, make sure that the length of that vector is correct. The function `find_symmetric_tensor_size(N, dim)` is useful for that purpose. Given the number of elements in each dimension `N` and the number of dimensions `dim`, it returns the number of distinct elements that a `SymmetricTensor{T, N, dim}` needs to store.
+
 ```julia
-julia> N_elements = find_symmetric_tensor_size(3, 3)
+julia> L = find_symmetric_tensor_size(3, 3)
 10
 
-julia> data = collect(1:N_elements)
+julia> data = collect(1:L)
 10-element Vector{Int64}:
   1
   2
