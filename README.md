@@ -6,7 +6,7 @@
 
 
 
-PermutationSymmetricTensors provides a framework for implementing multidimensional arrays that are symmetric under any permutation of their indices. Such symmetric tensors are implemented in the `SymmetricTensor{T, N, dim}` type, where `T` is the element type, `dim` is the number of indices required to index the tensor, and `N` is maximal index for each dimension. For example, to index a `SymmetricTensor{ComplexF64, 20, 6}`, you need 6 indices between 1 and 20. Note that here, we use the computer science definition of a tensor instead of the mathematical one: in the following, a tensor is just a multi-dimensional container of elements of some type `T`. As described above, we refer to the number of indices as the dimension of this tensor, because that is consistent with the definition of a multidimensional array. In mathematics and physics texts, this is usually refered to as the order or rank of a tensor. 
+PermutationSymmetricTensors provides an efficient framework for the use of multidimensional arrays that are symmetric under any permutation of their indices, implemented in pure Julia. Such symmetric tensors are implemented in the `SymmetricTensor{T, N, dim}` type, where `T` is the element type, `dim` is the number of indices required to index the tensor, and `N` is maximal index for each dimension. For example, to index a `SymmetricTensor{ComplexF64, 20, 6}`, you need 6 indices between 1 and 20. Note that we use the computer science definition of a tensor instead of the mathematical one: in the following, a tensor is just a multi-dimensional container of elements of some type `T`. As described above, we refer to the number of indices as the dimension of this tensor, because that is semantically consistent with the definition of a multidimensional array. In mathematics and physics texts, what we call dimension is usually referred to as the order, degree or rank of a tensor. 
 
 This package exports basic constructors of `SymmetricTensor`s, and a few convenience functions for working with them. The main advantage of using a `SymmetricTensor` is that it requires much less memory to store than the full array would. 
 
@@ -51,7 +51,7 @@ julia>  c = ones(SymmetricTensor{Bool, 2, 2})
 ```
 Since the tensor is parametrized with its size, it is not necessary to provide any other arguments to `zeros`, `ones`, or `rand`.
 
-In order to create a `SymmetricTensor` from data in a `Vector{T}` directly, make sure that the length of that vector is correct. The function `find_symmetric_tensor_size(N, dim)` is useful for that purpose. Given the number of elements in each dimension `N` and the number of dimensions `dim`, it returns the number of distinct elements that a `SymmetricTensor{T, N, dim}` needs to store.
+In order to create a `SymmetricTensor` from data in a `Vector{T}` directly, make sure that the length of the vector is correct. The function `find_symmetric_tensor_size(N, dim)` is useful for that purpose. Given the number of elements in each dimension `N` and the number of dimensions `dim`, it returns the number of distinct elements that a `SymmetricTensor{T, N, dim}` needs to store.
 
 ```julia
 julia> L = find_symmetric_tensor_size(3, 3)
@@ -89,7 +89,7 @@ julia> SymmetricTensor(data, Val(3), Val(3))
 
 ```
 
-Note that this means that these objects leverage symmetry to minimize memory usage. It easy to create `SymmetricTensors` that would have more elements than `typemax(Int64)`, if they had to be stored naively.
+Note that `SymmetricTensor`s leverage symmetry to minimize memory usage. It easy to create `SymmetricTensors` that would have more elements than `typemax(Int64)`, if they had been stored naively.
 
 ```julia
 julia> d = rand(SymmetricTensor{Float64, 14, 20});
@@ -266,6 +266,20 @@ A `SymmetricTensor{T, N, dim}` `a` contains two fields.
  - `a.linear_indices` is a `Vector{Vector{Int64}}` that is needed when `a` is indexed. The outer vector has length `length(a.linear_indices)` equal to `dim`. The length elements of that vector are equal to `N`. To index a `SymmetricTensor{Float64, 50, 3}` at indices `I = (21, 45, 21)`, first the indices are sorted in descending order, which is stored in a new tuple `I2`. Then the linear index is found by evaluating `index = (A.linear_indices[1])[45] + (A.linear_indices[2])[21] + (A.linear_indices[3])[21]`. This linear index can then be used to get the value: `val = a.data[index]`.
  
 Methods such as `getindex` and `find_full_indices` for operating with `SymmetricTensors` are implemented using generated functions.
+
+Currently, broadcasting will always convert a `SymmetricTensor` into a full `N`-dimensional `Array`.
+
+```julia
+julia> @time a = rand(SymmetricTensor{Float64, 10, 8});
+  0.000170 seconds (13 allocations: 191.266 KiB)
+
+julia> @time b = a .* 1;
+  2.755832 seconds (4 allocations: 762.940 MiB, 1.64% gc time)
+
+julia> typeof(b)
+Array{Float64, 8}
+```
+
 
 ## See also
 
