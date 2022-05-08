@@ -8,7 +8,7 @@ PermutationSymmetricTensors provides a framework for implementing multidimension
 This package exports basic constructors of `SymmetricTensor`s, and a few convenience functions for working with them. The main advantage of using a `SymmetricTensor` is that it requires much less memory to store than the full array would. 
 
 A `SymmetricTensor{T, N, dim}` `a` contains two fields. 
- - `a.data` is a `Vector{T}` that stores all the elements of the symmetric tensor. Its length is given by `L = binomial(N-1+dim, dim)`, or more conveniently `L = find_symmetric_tensor_size(3, 3)`. 
+ - `a.data` is a `Vector{T}` that stores all the elements of the symmetric tensor. Its length is given by `L = binomial(N-1+dim, dim)`, or more conveniently `L = find_symmetric_tensor_size(N, dim)`. 
  - `a.linear_indices` is a `Vector{Vector{Int64}}` that is needed when `a` is indexed. The outer vector has length `length(a.linear_indices)` equal to `dim`. The length elements of that vector are equal to `N`. 
  
  Methods such as `getindex` and `setindex!` for operating with `SymmetricTensors` are implemented using generated functions.
@@ -111,44 +111,7 @@ a full array of this shape would require 7.79e+13GB memory.
 
 The tensors can be indexed and mutated at will.
 
-```
-julia> a = rand(SymmetricTensor{Int8, 3, 3})
-3×3×3 SymmetricTensor{Int8, 3, 3}:
-[:, :, 1] =
- -93   67  -42
-  67  -31  115
- -42  115   29
-
-[:, :, 2] =
-  67   -31   115
- -31    76  -110
- 115  -110   -34
-
-[:, :, 3] =
- -42   115   29
- 115  -110  -34
-  29   -34   64
-
-julia> a[3,2,1] = 6
-6
-
-julia> a
-3×3×3 SymmetricTensor{Int8, 3, 3}:
-[:, :, 1] =
- -93   67  -42
-  67  -31    6
- -42    6   29
-
-[:, :, 2] =
-  67   -31     6
- -31    76  -110
-   6  -110   -34
-
-[:, :, 3] =
- -42     6   29
-   6  -110  -34
-  29   -34   64
-
+```julia
 julia> a = rand(SymmetricTensor{Int8, 3, 3})
 3×3×3 SymmetricTensor{Int8, 3, 3}:
 [:, :, 1] =
