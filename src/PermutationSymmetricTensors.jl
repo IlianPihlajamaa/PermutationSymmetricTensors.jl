@@ -186,7 +186,7 @@ function find_full_indices(N, dim)
     Returns an ordered array of tuples of indices (i1, i2, i3, ..., i{dim}) such that 
     i1 >= i2 >= i3 ... >= i{dim}. This can be used to find the cartesian index that 
     corresponds to a linear index of a SymmetricTensor{T, N, dim}. It will automatically
-    choose an appropriate integer type that to minimize the amount of required storage.
+    choose an appropriate integer type to minimize the amount of required storage.
 
     Example:
     julia> find_full_indices(3, 3)
@@ -341,7 +341,7 @@ function find_degeneracy(::SymmetricTensor{T, N, dim}) where {dim, N, T}
 function find_degeneracy(N, dim, full_indices)
 
     returns a SymmetricTensor{Int64, N, dim} of which each element specifies the number of index permutations that point to the same element. 
-    for efficiency can be called with the result of `find_full_indices(N, dim)` as a third argument.
+    for efficiency can be called with the result of `find_degeneracy(N, dim)` as a third argument.
 
     Examples: 
     julia> find_degeneracy(3, 3)

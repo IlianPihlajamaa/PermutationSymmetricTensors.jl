@@ -2,6 +2,9 @@
 
 [![Build status (Github Actions)](https://github.com/IlianPihlajamaa/PermutationSymmetricTensors.jl/workflows/CI/badge.svg)](https://github.com/IlianPihlajamaa/PermutationSymmetricTensors.jl/actions)
 [![codecov.io](http://codecov.io/github/IlianPihlajamaa/PermutationSymmetricTensors.jl/coverage.svg?branch=main)](http://codecov.io/github/IlianPihlajamaa/PermutationSymmetricTensors.jl?branch=main)
+[![PermutationSymmetricTensors Downloads](https://shields.io/endpoint?url=https://pkgs.genieframework.com/api/v1/badge/PermutationSymmetricTensors)](https://pkgs.genieframework.com?packages=PermutationSymmetricTensors).
+
+
 
 PermutationSymmetricTensors provides a framework for implementing multidimensional arrays that are symmetric under any permutation of their indices. Such symmetric tensors are implemented in the `SymmetricTensor{T, N, dim}` type, where `T` is the element type, `dim` is the number of indices required to index the tensor, and `N` is maximal index for each dimension. For example, to index a `SymmetricTensor{ComplexF64, 20, 6}`, you need 6 indices between 1 and 20. Note that here, we use the computer science definition of the tensor instead of the mathematical one: in the following, a tensor is just a multi-dimensional container of elements. As described above, we refer to the number of indices as the dimension of this tensor, because that is consistent with the definition of a multidimensional array. In mathematics and physics texts, this is usually refered to as the order or rank of a tensor. 
 
@@ -183,7 +186,7 @@ julia> a
 
 `find_full_indices(N, dim)` returns an ordered array of tuples of indices (i1, i2, i3, ..., i{dim}) such that
 i1 >= i2 >= i3 ... >= i{dim}. This can be used to find the cartesian index that
-corresponds to a linear index of a SymmetricTensor{T, N, dim}. It will automatically choose an appropriate integer type that to minimize the amount of required storage.
+corresponds to a linear index of a SymmetricTensor{T, N, dim}. It will automatically choose an appropriate integer type to minimize the amount of required storage.
 ```julia
   Example:
   julia> find_full_indices(3, 3)
@@ -200,8 +203,8 @@ corresponds to a linear index of a SymmetricTensor{T, N, dim}. It will automatic
   (3, 3, 3)
 ```
 
-`find_full_indices(N, dim)` returns a SymmetricTensor{Int64, N, dim} of which each element specifies the number of index permutations that point to the same element.
-for efficiency can be called with the result of `find_full_indices(N, dim)` as a third argument. It can also be called on a `SymmetricTensor` as `find_full_indices(a::SymmetriTensor)`.
+`find_degeneracy(N, dim)` returns a SymmetricTensor{Int64, N, dim} of which each element specifies the number of index permutations that point to the same element.
+for efficiency can be called with the result of `find_degeneracy(N, dim)` as a third argument. It can also be called on a `SymmetricTensor` as `find_degeneracy(a::SymmetriTensor)`.
 
 ```julia
   Examples:
