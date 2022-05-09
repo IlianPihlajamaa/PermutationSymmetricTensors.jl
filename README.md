@@ -198,7 +198,7 @@ corresponds to a linear index of a SymmetricTensor{T, N, dim}. It will automatic
 ```
 
 `find_degeneracy(N, dim)` returns a SymmetricTensor{Int64, N, dim} of which each element specifies the number of index permutations that point to the same element.
-for efficiency can be called with the result of `find_degeneracy(N, dim)` as a third argument. It can also be called on a `SymmetricTensor` as `find_degeneracy(a::SymmetriTensor)`.
+for efficiency can be called with the result of `find_degeneracy(N, dim)` as a third argument. It can also be called on a `SymmetricTensor` as `find_degeneracy(a::SymmetricTensor)`.
 
 ```julia
   Examples:
