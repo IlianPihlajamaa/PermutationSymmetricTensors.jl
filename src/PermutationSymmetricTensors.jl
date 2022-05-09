@@ -4,7 +4,7 @@ export SymmetricTensor
 export find_full_indices
 export find_degeneracy
 export find_symmetric_tensor_size
-using  TupleTools, Random
+using  StaticArrays, Random
 
 """
 SymmetricTensor{T, N, dim} <: AbstractArray{T, dim} 
@@ -45,11 +45,47 @@ function zeros(::Type{SymmetricTensor{T, N, dim}}) where {N, dim, T}
     return SymmetricTensor(zeros(T, find_symmetric_tensor_size(N, dim)), Val(N), Val(dim))
 end
 
-import Base.rand
+import Base.rand, Random.rand!
 function rand(::Type{SymmetricTensor{T, N, dim}}) where {N, dim, T}
     @assert typeof(N) == typeof(dim) == Int
     return SymmetricTensor(rand(T, find_symmetric_tensor_size(N, dim)), Val(N), Val(dim))
 end
+
+function rand(rng::AbstractRNG, ::Type{SymmetricTensor{T, N, dim}}) where {N, dim, T}
+    @assert typeof(N) == typeof(dim) == Int
+    return SymmetricTensor(rand(rng, T, find_symmetric_tensor_size(N, dim)), Val(N), Val(dim))
+end
+
+function rand(rng::AbstractRNG, range::AbstractArray, ::Type{SymmetricTensor{T, N, dim}}) where {N, dim, T}
+    @assert typeof(N) == typeof(dim) == Int
+    return SymmetricTensor(rand(rng, range, find_symmetric_tensor_size(N, dim)), Val(N), Val(dim))
+end
+
+function rand(range::AbstractArray, ::Type{SymmetricTensor{T, N, dim}}) where {N, dim, T}
+    @assert typeof(N) == typeof(dim) == Int
+    return SymmetricTensor(rand(range, find_symmetric_tensor_size(N, dim)), Val(N), Val(dim))
+end
+
+function rand!(A::Type{SymmetricTensor{T, N, dim}}) where {N, dim, T}
+    rand!(A.data)
+end
+
+function rand!(rng::AbstractRNG, A::Type{SymmetricTensor{T, N, dim}}) where {N, dim, T}
+    println("hoi")
+    rand!(rng, A.data)
+end
+
+function rand!(A::Type{SymmetricTensor{T, N, dim}}, range::AbstractArray) where {N, dim, T}
+    @assert eltype(range) == T
+    rand!(A.data, range)
+end
+
+function rand!(rng::AbstractRNG, A::Type{SymmetricTensor{T, N, dim}}, range::AbstractArray) where {N, dim, T}
+    @assert eltype(range) == T
+    rand!(rng, A.data, range)
+end
+
+
 
 import Base.ones
 function ones(::Type{SymmetricTensor{T, N, dim}}) where {N, dim, T}
@@ -112,8 +148,8 @@ function getindex(A::SymmetricTensor{T, N, dim}, I::Int64...) where {T, dim, N}
     This is a custom getindex method for SymmetricTensor types.
     It is implemented with a generated function, for dim = 3, the following code will be executed:
 
-    function get_index(A::SymmetricTensor{N, dim, T}, I::Int64...) where {T, dim, N}
-        I2 = TupleTools.sort(I, rev = true)     
+    function get_index(A::SymmetricTensor{T, N, dim}, I::Int64...) where {T, dim, N}
+        I2 = sort(SVector(I...), rev=true)    
         ind = 0
         @inbounds begin 
             ind += (A.linear_indices[1])[I2[1]]
@@ -124,20 +160,29 @@ function getindex(A::SymmetricTensor{T, N, dim}, I::Int64...) where {T, dim, N}
     end
 """
 @generated function getindex(A::SymmetricTensor{T, N, dim}, I::Int64...) where {T, dim, N}
-    if length(I) == 1
-        return :(@inbounds A[CartesianIndices(A)[I[1]]])
+    if length(I) == 1 
+        if dim == 1
+            return :(@inbounds A.data[I[1]])
+        else
+            return :(@inbounds A[CartesianIndices(A)[I[1]]])
+        end
     elseif length(I) != dim
-        return :(throw(DimensionMismatch("This $dim-dimensional symmetric tensor is being indexed with $(length(I)) indices.")))
+        if dim == 1 && length(I) == 2 
+            return :(if I[2] == 1; @inbounds A.data[I[1]]; else; throw(DimensionMismatch("This $dim-dimensional symmetric tensor is being indexed with $(length(I)) indices.")); end)
+        else
+            return :( throw(DimensionMismatch("This $dim-dimensional symmetric tensor is being indexed with $(length(I)) indices.")))
+        end
     end
-    ex = :(I2 = TupleTools.sort(I, rev=true))
+    ex = :(I2 = sort(SVector(I), rev=true))
     ex1 = :(@boundscheck (I2[1]>N || I2[end]<1) && throw(BoundsError(A, I))) 
-    ex2 = :(ind = 0)
+    ex2 = :(ind = 0; lin_ind=A.linear_indices)
     for i in 1:dim
-        ex2 = :($ex2; @inbounds ind += A.linear_indices[$i][I2[$i]])
+        ex2 = :($ex2; @inbounds ind += lin_ind[$i][I2[$i]])
     end
     ex3 = :(@inbounds A.data[ind])
     return ex = :($ex; $ex1; $ex2; $ex3)
 end
+
 
 import Base.setindex!
 
@@ -146,8 +191,8 @@ function setindex!(A::SymmetricTensor{T, N, dim}, value, I::Int64...) where {T, 
     This is a custom setindex! method for SymmetricTensor types.
     It is implemented with a generated function, for dim = 3, the following code will be executed:
 
-    function set_index!(A::SymmetricTensor{N, dim, T}, value, I::Int64...) where {T, dim, N}
-        I2 = TupleTools.sort(I, rev = true)     
+    function set_index!(A::SymmetricTensor{T, N, dim}, value, I::Int64...) where {T, dim, N}
+        I2 = sort(SVector(I...), rev=true)     
         ind = 0
         @inbounds begin 
             ind += (A.linear_indices[1])[I2[1]]
@@ -158,16 +203,24 @@ function setindex!(A::SymmetricTensor{T, N, dim}, value, I::Int64...) where {T, 
     end
 """
 @generated function setindex!(A::SymmetricTensor{T, N, dim}, value, I::Int64...) where {T, dim, N}
-    if length(I) == 1
-        return :(@inbounds A[CartesianIndices(A)[I[1]]] = value)
+    if length(I) == 1 
+        if dim == 1
+            return :(@inbounds A.data[I[1]]=value)
+        else
+            return :(@inbounds A[CartesianIndices(A)[I[1]]]=value)
+        end
     elseif length(I) != dim
-        return :(throw(DimensionMismatch("This $dim-dimensional symmetric tensor is being indexed with $(length(I)) indices.")))
+        if dim == 1 && length(I) == 2 
+            return :(if I[2] == 1; @inbounds A.data[I[1]]=value; else; throw(DimensionMismatch("This $dim-dimensional symmetric tensor is being indexed with $(length(I)) indices.")); end)
+        else
+            return :(throw(DimensionMismatch("This $dim-dimensional symmetric tensor is being indexed with $(length(I)) indices.")))
+        end
     end
-    ex = :(I2 = TupleTools.sort(I, rev=true))
+    ex = :(I2 = sort(SVector(I), rev=true))
     ex1 = :(@boundscheck (I2[1]>N || I2[end]<1) && throw(BoundsError(A, I))) 
-    ex2 = :(ind = 0)
+    ex2 = :(ind = 0; lin_ind=A.linear_indices)
     for i in 1:dim
-        ex2 = :($ex2; @inbounds ind += A.linear_indices[$i][I2[$i]])
+        ex2 = :($ex2; @inbounds ind += lin_ind[$i][I2[$i]])
     end
     ex3 = :(@inbounds A.data[ind] = value)
     return ex = :($ex; $ex1; $ex2; $ex3)
