@@ -155,7 +155,7 @@ function getindex(A::SymmetricTensor{T, N, dim}, I::Int64...) where {T, dim, N}
         index_ex = :(@inbounds A.data[I[1]])
         return :($boundscheck_ex1; $check_ex; $index_ex)
     end
-    if  dim > 1 && length(I) == 1 
+    if dim > 1 && length(I) == 1 
         index_ex = :(@inbounds A[CartesianIndices(A)[I[1]]])
         return :($boundscheck_ex1; $index_ex)
     end
@@ -202,7 +202,7 @@ function setindex!(A::SymmetricTensor{T, N, dim}, value, I::Int64...) where {T, 
         index_ex = :(@inbounds A.data[I[1]] = value)
         return :($boundscheck_ex1; $check_ex; $index_ex)
     end
-    if  dim > 1 && length(I) == 1 
+    if dim > 1 && length(I) == 1 
         index_ex = :(@inbounds A[CartesianIndices(A)[I[1]]] = value)
         return :($boundscheck_ex1; $index_ex)
     end
