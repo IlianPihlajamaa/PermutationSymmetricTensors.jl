@@ -145,16 +145,21 @@ function getindex(A::SymmetricTensor{T, N, dim}, I::Int64...) where {T, dim, N}
     end
 """
 @generated function getindex(A::SymmetricTensor{T, N, dim}, I::Int64...) where {T, dim, N}
-    if length(I) == 1 
-        boundscheck_ex = :(@boundscheck ((I[1]>N^dim || I[1]<1) && throw(BoundsError(A, I))))
-        if dim == 1
-            index_ex = :(@inbounds A.data[I[1]])
-            return :($boundscheck_ex; $index_ex)
-        else
-            index_ex = :(@inbounds A[CartesianIndices(A)[I[1]]])
-            return :($boundscheck_ex; $index_ex)
-        end
-    elseif length(I) != dim
+    boundscheck_ex1 = :(@boundscheck ((I[1]>N^dim || I[1]<1) && throw(BoundsError(A, I))))
+    if dim == 1 && length(I) == 1 
+        index_ex = :(@inbounds A.data[I[1]])
+        return :($boundscheck_ex1; $index_ex)
+    end
+    if dim == 1 && length(I) == 2 
+        check_ex = :(I[2] == 1 || throw(DimensionMismatch("This $dim-dimensional symmetric tensor is being indexed with $(length(I)) indices.")))
+        index_ex = :(@inbounds A.data[I[1]])
+        return :($boundscheck_ex1; $check_ex; $index_ex)
+    end
+    if  dim > 1 && length(I) == 1 
+        index_ex = :(@inbounds A[CartesianIndices(A)[I[1]]])
+        return :($boundscheck_ex1; $index_ex)
+    end
+    if length(I) != dim
         return :( throw(DimensionMismatch("This $dim-dimensional symmetric tensor is being indexed with $(length(I)) indices.")))
     end
     ex = :(I2 = sort(SVector(I), rev=true))
@@ -187,16 +192,21 @@ function setindex!(A::SymmetricTensor{T, N, dim}, value, I::Int64...) where {T, 
     end
 """
 @generated function setindex!(A::SymmetricTensor{T, N, dim}, value, I::Int64...) where {T, dim, N}
-    if length(I) == 1 
-        boundscheck_ex = :(@boundscheck ((I[1]>N^dim || I[1]<1) && throw(BoundsError(A, I))))
-        if dim == 1
-            index_ex = :(@inbounds A.data[I[1]] = value)
-            return :($boundscheck_ex; $index_ex)
-        else
-            index_ex = :(@inbounds A[CartesianIndices(A)[I[1]]] = value )
-            return :($boundscheck_ex; $index_ex)
-        end
-    elseif length(I) != dim
+    boundscheck_ex1 = :(@boundscheck ((I[1]>N^dim || I[1]<1) && throw(BoundsError(A, I))))
+    if dim == 1 && length(I) == 1 
+        index_ex = :(@inbounds A.data[I[1]] = value)
+        return :($boundscheck_ex1; $index_ex)
+    end
+    if dim == 1 && length(I) == 2 
+        check_ex = :(I[2] == 1 || throw(DimensionMismatch("This $dim-dimensional symmetric tensor is being indexed with $(length(I)) indices.")))
+        index_ex = :(@inbounds A.data[I[1]] = value)
+        return :($boundscheck_ex1; $check_ex; $index_ex)
+    end
+    if  dim > 1 && length(I) == 1 
+        index_ex = :(@inbounds A[CartesianIndices(A)[I[1]]] = value)
+        return :($boundscheck_ex1; $index_ex)
+    end
+    if length(I) != dim
         return :( throw(DimensionMismatch("This $dim-dimensional symmetric tensor is being indexed with $(length(I)) indices.")))
     end
     ex = :(I2 = sort(SVector(I), rev=true))
