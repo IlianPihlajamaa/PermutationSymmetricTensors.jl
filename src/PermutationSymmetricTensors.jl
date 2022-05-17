@@ -4,6 +4,7 @@ export SymmetricTensor
 export find_full_indices
 export find_degeneracy
 export find_symmetric_tensor_size
+export rand!
 using  StaticArrays, Random
 
 """
@@ -66,26 +67,25 @@ function rand(range::AbstractArray, ::Type{SymmetricTensor{T, N, dim}}) where {N
     return SymmetricTensor(rand(range, find_symmetric_tensor_size(N, dim)), Val(N), Val(dim))
 end
 
-function rand!(A::Type{SymmetricTensor{T, N, dim}}) where {N, dim, T}
+function rand!(A::SymmetricTensor{T, N, dim}) where {N, dim, T}
     rand!(A.data)
+    return nothing
 end
 
-function rand!(rng::AbstractRNG, A::Type{SymmetricTensor{T, N, dim}}) where {N, dim, T}
-    println("hoi")
+function rand!(rng::AbstractRNG, A::SymmetricTensor{T, N, dim}) where {N, dim, T}
     rand!(rng, A.data)
+    return nothing
 end
 
-function rand!(A::Type{SymmetricTensor{T, N, dim}}, range::AbstractArray) where {N, dim, T}
-    @assert eltype(range) == T
+function rand!(A::SymmetricTensor{T, N, dim}, range::AbstractArray) where {N, dim, T}
     rand!(A.data, range)
+    return nothing
 end
 
-function rand!(rng::AbstractRNG, A::Type{SymmetricTensor{T, N, dim}}, range::AbstractArray) where {N, dim, T}
-    @assert eltype(range) == T
+function rand!(rng::AbstractRNG, A::SymmetricTensor{T, N, dim}, range::AbstractArray) where {N, dim, T}
     rand!(rng, A.data, range)
+    return nothing
 end
-
-
 
 import Base.ones
 function ones(::Type{SymmetricTensor{T, N, dim}}) where {N, dim, T}
@@ -96,29 +96,13 @@ end
 import Base.sizeof
 sizeof(A::SymmetricTensor) = sizeof(A.data) + sizeof(A.linear_indices) + sizeof(A.linear_indices[1])*length(A.linear_indices)
 
-import Base.length
-length(::SymmetricTensor{T, N, dim}) where {T, N, dim} = N^dim
-
 import Base.size
 size(::SymmetricTensor{T, N, dim}) where {T, N, dim} = ntuple(x->N, dim)
-
-import Base.ndims
-ndims(::Type{SymmetricTensor{T, N, dim}} where {T, dim, N}) = dim 
-
-import Base.axes
-axes(::Type{SymmetricTensor{T, N, dim}} where {T, dim, N}) = ntuple(x->Base.OneTo(Val(N)), dim)
-
-
-import Base.iterate
-@inline function iterate(A::SymmetricTensor{T, N, dim}, i=1) where {T, N, dim}
-    (i % UInt) - 1 < length(A) ? (@inbounds A[CartesianIndices(A)[i]], i + 1) : nothing
-end
 
 import Base.similar
 function similar(A::SymmetricTensor{T, N, dim}) where {T, N, dim}
     return zeros(typeof(A))
 end
-
 
 """
 function find_symmetric_tensor_size(N, dim)
@@ -142,6 +126,7 @@ function check_correct_size(N_elements, N, dim)
     return  N_elements == find_symmetric_tensor_size(N, dim)
 end
 
+
 import Base.getindex
 """
 function getindex(A::SymmetricTensor{T, N, dim}, I::Int64...) where {T, dim, N}
@@ -161,17 +146,16 @@ function getindex(A::SymmetricTensor{T, N, dim}, I::Int64...) where {T, dim, N}
 """
 @generated function getindex(A::SymmetricTensor{T, N, dim}, I::Int64...) where {T, dim, N}
     if length(I) == 1 
+        boundscheck_ex = :(@boundscheck ((I[1]>N^dim || I[1]<1) && throw(BoundsError(A, I))))
         if dim == 1
-            return :(@inbounds A.data[I[1]])
+            index_ex = :(@inbounds A.data[I[1]])
+            return :($boundscheck_ex; $index_ex)
         else
-            return :(@inbounds A[CartesianIndices(A)[I[1]]])
+            index_ex = :(@inbounds A[CartesianIndices(A)[I[1]]])
+            return :($boundscheck_ex; $index_ex)
         end
     elseif length(I) != dim
-        if dim == 1 && length(I) == 2 
-            return :(if I[2] == 1; @inbounds A.data[I[1]]; else; throw(DimensionMismatch("This $dim-dimensional symmetric tensor is being indexed with $(length(I)) indices.")); end)
-        else
-            return :( throw(DimensionMismatch("This $dim-dimensional symmetric tensor is being indexed with $(length(I)) indices.")))
-        end
+        return :( throw(DimensionMismatch("This $dim-dimensional symmetric tensor is being indexed with $(length(I)) indices.")))
     end
     ex = :(I2 = sort(SVector(I), rev=true))
     ex1 = :(@boundscheck (I2[1]>N || I2[end]<1) && throw(BoundsError(A, I))) 
@@ -204,17 +188,16 @@ function setindex!(A::SymmetricTensor{T, N, dim}, value, I::Int64...) where {T, 
 """
 @generated function setindex!(A::SymmetricTensor{T, N, dim}, value, I::Int64...) where {T, dim, N}
     if length(I) == 1 
+        boundscheck_ex = :(@boundscheck ((I[1]>N^dim || I[1]<1) && throw(BoundsError(A, I))))
         if dim == 1
-            return :(@inbounds A.data[I[1]]=value)
+            index_ex = :(@inbounds A.data[I[1]] = value)
+            return :($boundscheck_ex; $index_ex)
         else
-            return :(@inbounds A[CartesianIndices(A)[I[1]]]=value)
+            index_ex = :(@inbounds A[CartesianIndices(A)[I[1]]] = value )
+            return :($boundscheck_ex; $index_ex)
         end
     elseif length(I) != dim
-        if dim == 1 && length(I) == 2 
-            return :(if I[2] == 1; @inbounds A.data[I[1]]=value; else; throw(DimensionMismatch("This $dim-dimensional symmetric tensor is being indexed with $(length(I)) indices.")); end)
-        else
-            return :(throw(DimensionMismatch("This $dim-dimensional symmetric tensor is being indexed with $(length(I)) indices.")))
-        end
+        return :( throw(DimensionMismatch("This $dim-dimensional symmetric tensor is being indexed with $(length(I)) indices.")))
     end
     ex = :(I2 = sort(SVector(I), rev=true))
     ex1 = :(@boundscheck (I2[1]>N || I2[end]<1) && throw(BoundsError(A, I))) 
@@ -226,11 +209,10 @@ function setindex!(A::SymmetricTensor{T, N, dim}, value, I::Int64...) where {T, 
     return ex = :($ex; $ex1; $ex2; $ex3)
 end
 
+find_full_indices(::SymmetricTensor{T, N, dim}) where {dim, N, T} = find_full_indices(Int32, N, Val(dim))
+
 function find_full_indices(N, dim) 
-    N < typemax(Int8) && return find_full_indices(Int8, N, Val(dim))
-    N < typemax(Int16) && return find_full_indices(Int16, N, Val(dim))
-    N < typemax(Int32) && return find_full_indices(Int32, N, Val(dim))
-    return _find_full_indices(Int64, N, Val(dim))
+    return find_full_indices(Int32, N, Val(dim))
 end
 
 """
