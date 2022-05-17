@@ -250,7 +250,7 @@ julia> [i for i in eachindex(a)]
  CartesianIndex(2, 1, 2, 2)  CartesianIndex(2, 2, 2, 2)
 ```
 
-Currently, broadcasting will always convert a `SymmetricTensor` into a full `N`-dimensional `Array`. For simple broadcasts, such as applying elementwise functions, instead consider using broadcasting on the `data`-field, which holds all data that the symmetric tensor contains. 
+Currently, broadcasting will always convert a `SymmetricTensor` into a full `N`-dimensional `Array`. For simple broadcasts, such as applying elementwise functions, instead consider broadcasting on the `data`-field, which holds all data that the symmetric tensor contains. 
 
 ```julia
 julia> @time a = rand(SymmetricTensor{Float64, 10, 8});
