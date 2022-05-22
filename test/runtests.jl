@@ -5,23 +5,30 @@ println("Testing PermutationSymmetricTensors")
     for T in [Float64, ComplexF32, BigFloat, Bool]
         rng = MersenneTwister(1)
         for N in [2, 5, 10]
-            for dim in [1, 2, 5, 10]
+            for dim in [1, 2, 5, 10, 19]
                 for func in [rand, ones, zeros]
+                    if T == BigFloat && dim == 19
+                        continue
+                    end
                     a = func(SymmetricTensor{T, N, dim})
+
                     @test length(a.data) ==  find_symmetric_tensor_size(N, dim)
-                    @test length(a) == N^dim
+                    @test length(a) == big(N)^dim
                     @test sizeof(a) > sizeof(a.data)
                     @test ndims(a) == dim
                     @test axes(a,1) == Base.OneTo(N)
                     b = similar(a)
                     @test axes(a) == axes(b)
-                    @test sum(Float64.(real.(b.data)) .* find_degeneracy(b).data) == 0
+
+                    fb = find_degeneracy(b)
+
+                    @test sum(Float64.(real.(b.data)) .* fb.data) == 0
                     rand!(b, 1:1)
-                    @test sum(Float64.(real.(b.data)) .* find_degeneracy(b).data) == length(b)
+                    @test sum(Float64.(real.(b.data)) .* fb.data) == length(b)
                     rand!(rng, b, 1:1)
-                    @test sum(Float64.(real.(b.data)) .* find_degeneracy(b).data) == length(b)
+                    @test sum(Float64.(real.(b.data)) .* fb.data) == length(b)
                     rand!(b)
-                    @test sum(Float64.(real.(b.data)) .* find_degeneracy(b).data) <= length(b)
+                    @test sum(Float64.(real.(b.data)) .* fb.data) <= length(b)
                     @test a[1] == a.data[1]
                 end
             end
