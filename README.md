@@ -519,7 +519,7 @@ Since `full_indices` and `degeneracy` depend only on the shape of `a`, they can 
 
 A `SymmetricTensor{T, N, dim}` `a` contains two fields. 
  - `a.data` is a `Vector{T}` that stores all the elements of the symmetric tensor. Its length is given by `L = binomial(N-1+dim, dim)`, or more conveniently `L = find_symmetric_tensor_size(N, dim)`. 
- - `a.linear_indices` is a `Vector{Vector{Int64}}` that is needed when `a` is indexed. The outer vector has length `length(a.linear_indices)` equal to `dim`. The length of the elements of that vector are equal to `N`. To index a `SymmetricTensor{Float64, 50, 3}` at indices `I = (21, 45, 21)`, first the indices are sorted in descending order, which is stored in a new tuple `I2`. Then the linear index is found by evaluating `index = (A.linear_indices[1])[45] + (A.linear_indices[2])[21] + (A.linear_indices[3])[21]`. This linear index can then be used to get the value: `val = a.data[index]`.
+ - `a.linear_indices` is a `Vector{Vector{Int64}}` that is needed when `a` is indexed. The outer vector has length `length(a.linear_indices)` equal to `dim`. The length of the elements of that vector are equal to `N`. To index a `SymmetricTensor{Float64, 50, 3}` at indices `I = (21, 45, 21)`, first the indices are sorted in descending order. Then, the linear index is found by evaluating `index = (A.linear_indices[1])[45] + (A.linear_indices[2])[21] + (A.linear_indices[3])[21]`. This linear index can now be used to get the value: `val = a.data[index]`.
  
 Methods such as `getindex` and `find_full_indices` for operating with `SymmetricTensors` are implemented using generated functions.
 
