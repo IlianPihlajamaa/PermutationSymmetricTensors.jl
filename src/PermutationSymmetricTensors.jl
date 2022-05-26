@@ -100,12 +100,16 @@ import Base.size
 size(::SymmetricTensor{T, N, dim}) where {T, N, dim} = ntuple(x->N, dim)
 
 import Base.similar
-function similar(A::SymmetricTensor{T, N, dim}) where {T, N, dim}
-    return zeros(typeof(A))
+function similar(::SymmetricTensor{T, N, dim}) where {T, N, dim}
+    return SymmetricTensor(Vector{T}(undef, find_symmetric_tensor_size(N, dim)), Val(N), Val(dim))
+end
+
+function similar(::SymmetricTensor{T, N, dim}, ::Type{T_new}) where {T_new, T, N, dim}
+    return SymmetricTensor(Vector{T_new}(undef, find_symmetric_tensor_size(N, dim)), Val(N), Val(dim))
 end
 
 import Base.length
-length(::SymmetricTensor{T, N, dim}) where {T, N, dim} = Int128(N)^dim
+length(::SymmetricTensor{T, N, dim}) where {T, N, dim} = N^dim > typemax(Int) ? Int128(N)^dim : N^dim
 
 
 """

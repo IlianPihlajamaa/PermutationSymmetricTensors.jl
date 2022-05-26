@@ -2,7 +2,7 @@
 
 [![Build status (Github Actions)](https://github.com/IlianPihlajamaa/PermutationSymmetricTensors.jl/workflows/CI/badge.svg)](https://github.com/IlianPihlajamaa/PermutationSymmetricTensors.jl/actions)
 [![codecov.io](http://codecov.io/github/IlianPihlajamaa/PermutationSymmetricTensors.jl/coverage.svg?branch=main)](http://codecov.io/github/IlianPihlajamaa/PermutationSymmetricTensors.jl?branch=main)
-[![PermutationSymmetricTensors Downloads](https://shields.io/endpoint?url=https://pkgs.genieframework.com/api/v1/badge/PermutationSymmetricTensors)](https://pkgs.genieframework.com?packages=PermutationSymmetricTensors)
+<!---[![PermutationSymmetricTensors Downloads](https://shields.io/endpoint?url=https://pkgs.genieframework.com/api/v1/badge/PermutationSymmetricTensors)](https://pkgs.genieframework.com?packages=PermutationSymmetricTensors)-->
 
 
 
@@ -53,10 +53,15 @@ julia> d = similar(c)
 2×2 SymmetricTensor{Bool, 2, 2}:
  0  0
  0  0
+
+julia> e = similar(d, Char)
+2×2 Matrix{Char}:
+ '\0'  '\x11\xa8\x4d\xa1'
+ '\0'  '\0'
 ```
 Since the tensor is parametrized with its size, it is not necessary to provide any other arguments to `zeros`, `ones`, or `rand`. If the standard library `Random` is imported, `rand!(a)` will also work.
 
-In order to create a `SymmetricTensor` from data stored in a `Vector{T}` directly, a constructor `SymmetricTensor(data, Val(N), Val(dim))` can be called. It is important to make sure that the length of the given vector `data` is correct. The function `find_symmetric_tensor_size(N, dim)` is useful for that purpose. Given the number of elements in each dimension `N` and the number of dimensions `dim`, it returns the number of distinct elements that a `SymmetricTensor{T, N, dim}` needs to store.
+In order to create a `SymmetricTensor` from data stored in a `Vector{T}` directly, a constructor `SymmetricTensor(data, Val(N), Val(dim))` can be called. It is important to make sure that the length of the given vector `data` agrees with the number of unique elements in the requested `SymmetricTensor`. The function `find_symmetric_tensor_size(N, dim)` is useful for that purpose. Given the number of elements in each dimension `N` and the number of dimensions `dim`, it returns the number of distinct elements that a `SymmetricTensor{T, N, dim}` needs to store.
 
 ```julia
 julia> L = find_symmetric_tensor_size(3, 3)
@@ -97,18 +102,29 @@ julia> SymmetricTensor(data, Val(3), Val(3))
 Note that `SymmetricTensor`s leverage symmetry to minimize memory usage. It easy to create `SymmetricTensors` that would have more elements than `typemax(Int64)`, if they had been stored naively.
 
 ```julia
-julia> d = rand(SymmetricTensor{Float64, 14, 20});
+julia> d = rand(SymmetricTensor{Float64, 14, 17});
 
 julia> println("This tensor requires ", round(sizeof(d)/2^30, digits=2), "GB memory")
-This tensor requires 4.27GB memory
+This tensor requires 0.89GB memory
 
-julia> println("a full array of this shape would require ", 14^20/2^30, "GB memory.")
-a full array of this shape would require -5.75e9GB memory.
+julia> println("a full array of this shape would require ", length(d)*8/2^30, "GB memory.")
+a full array of this shape would require 2.27e11GB memory.
 
-julia> println("a full array of this shape would require ", big(14)^20/2^30, "GB memory.")
-a full array of this shape would require 7.79e+13GB memory.
+julia> println("it would have ", 14^17, " elements.")
+it would have -6402141418087907328 elements.
+
+julia> println("oops, I meant ", big(14)^17)
+oops, I meant 30491346729331195904
 ```
-In the second line, the computation `14^20/2^30` overflowed, and therefore returned the wrong result. This is important to take into account when calculating the sum of all elements of a `SymmetricTensor{Int, N, dim}`, if it is very large.
+In the second line, the computation `14^17` overflowed, and therefore returned the wrong result. This is important to take this into account when calculating the sum of all elements of a `SymmetricTensor{Int, N, dim}`, if it is very large. To make iteration work on arrays for which `N^dim > typemax(Int)`, `length(d)` returns an `Int128` in those cases. 
+
+```julia
+julia>  d = rand(SymmetricTensor{Float64, 15, 20});
+julia> length(d)
+332525673007965087890625
+julia> typeof(ans)
+Int128
+```
 
 ## Standard use
 
