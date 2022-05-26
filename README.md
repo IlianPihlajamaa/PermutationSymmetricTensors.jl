@@ -313,7 +313,7 @@ julia> sort!(a, dims=2)
 ## Convenience Functions
 
 `find_full_indices(N, dim)` or `find_full_indices(a::SymmetricTensor)` returns an ordered array of tuples of indices (i1, i2, i3, ..., i{dim}) such that i1 >= i2 >= i3 ... >= i{dim}. This can be used to find the cartesian index that
-corresponds to a linear index of a SymmetricTensor{T, N, dim}.
+corresponds to a linear index of a `SymmetricTensor{T, N, dim}`.
   Example: 
 ```julia
 julia> find_full_indices(3, 3)
