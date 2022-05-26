@@ -272,7 +272,7 @@ julia> [i for i in eachindex(a)]
  CartesianIndex(1, 1, 2, 2)  CartesianIndex(1, 2, 2, 2)
  CartesianIndex(2, 1, 2, 2)  CartesianIndex(2, 2, 2, 2)
 ```
-However, the only functions from `Base` that are explicitly overloaded are `zeros`, `ones`, `rand(!)`, `similar`, `sizeof`, `size`, `length`, `getindex`, and `setindex!`. All other operations shown above fall back to the implementations for `AbstractArray` of which `PermutationSymmetricTensor` is a subtype. Many therefore have highly suboptimal performance. More examples of that are given in the Performance section below.
+However, the only functions from `Base` that are explicitly overloaded are `zeros`, `ones`, `rand(!)`, `similar`, `sizeof`, `size`, `length`, `getindex`, and `setindex!`. All other operations shown above fall back to the implementations for `AbstractArray` of which `SymmetricTensor` is a subtype. Many therefore have highly suboptimal performance. More examples of that are given in the Performance section below.
 
 Currently, broadcasting will always convert a `SymmetricTensor` into a full `N`-dimensional `Array`. For simple broadcasts, such as applying elementwise functions, instead consider broadcasting on the `data`-field, which holds all data that the symmetric tensor contains. 
 
@@ -387,7 +387,7 @@ Examples:
 
 ## Performance
 
-`PermutationSymmetricTensor`s should be used mainly to save memory as explained above. In exchange, they sacrifice the performance of indexing. However, as we shall see, also many basic operations on symmetric tensors outperform those applied to full arrays, if the dimensionality is sufficiently large. 
+`SymmetricTensor`s should be used mainly to save memory as explained above. In exchange, they sacrifice the performance of indexing. However, as we shall see, also many basic operations on symmetric tensors outperform those applied to full arrays, if the dimensionality is sufficiently large. 
 
 ```julia
 using BenchmarkTools
@@ -441,7 +441,7 @@ julia> @btime $b[5,2,6,8,5,3,4,5,7]
 0.0
 ```
 
-Even though indexing into a SymmetricTensor is slower than it is into a standard Array, by abusing the symmetry, many basic operations can be made very efficient by applying them on the `data` field of the tensor, instead of on the tensor itself.
+Even though indexing into a `SymmetricTensor` is slower than it is into a standard `Array`, by abusing the symmetry of the underlying data, many basic operations can be made very efficient by applying them to the `data` field of the tensor directly, instead of on the tensor itself.
 
 Example:
 ```julia
@@ -466,11 +466,10 @@ julia> @btime extrema($a.data)
 
 In the example above, by calling `extrema` on the `data` field, we avoided looping over the vast majority of the elements. 
 
-The functions `find_degeneracy` and `find_full_indices` are useful for implementing such efficient computations on the data of the tensor. 
+The functions `find_degeneracy` and `find_full_indices` are useful for implementing such efficient computations on the tensor. 
 
 Example 1:
 ```julia
-
 
 julia> @btime findmin($a)
   78.533 ms (0 allocations: 0 bytes)
@@ -514,7 +513,7 @@ julia> @btime sum($a.data .* $degeneracy.data) # would be even more efficient wi
 5.022884033248686e7
 ```
 
-Since `full_indices` and `degeneracy` depends only on the shape of `a`, they can often be precomputed for better performance.
+Since `full_indices` and `degeneracy` depend only on the shape of `a`, they can often be precomputed for better performance.
 
 ## Implementation
 
