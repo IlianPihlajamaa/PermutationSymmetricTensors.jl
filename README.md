@@ -312,8 +312,7 @@ julia> sort!(a, dims=2)
 
 ## Convenience Functions
 
-`find_full_indices(N, dim)` or `find_full_indices(a::SymmetricTensor)` returns an ordered array of tuples of indices (i1, i2, i3, ..., i{dim}) such that i1 >= i2 >= i3 ... >= i{dim}. This can be used to find the cartesian index that
-corresponds to a linear index of a `SymmetricTensor{T, N, dim}`.
+`find_full_indices(N, dim)` or `find_full_indices(a::SymmetricTensor)` returns an ordered array of tuples of indices (i1, i2, i3, ..., i{dim}) such that i1 >= i2 >= i3 ... >= i{dim}. This can be used to find the cartesian index that corresponds the index of the underlying data vector of a `SymmetricTensor{T, N, dim}`.
   Example: 
 ```julia
 julia> find_full_indices(3, 3)
@@ -331,7 +330,7 @@ julia> find_full_indices(3, 3)
   
 julia> a = rand(SymmetricTensor{Float64, 2, 8});
 
-julia> find_full_indices(a)
+julia> full_indices = find_full_indices(a)
 9-element Vector{NTuple{8, Int32}}:
  (1, 1, 1, 1, 1, 1, 1, 1)
  (2, 1, 1, 1, 1, 1, 1, 1)
@@ -342,6 +341,15 @@ julia> find_full_indices(a)
  (2, 2, 2, 2, 2, 2, 1, 1)
  (2, 2, 2, 2, 2, 2, 2, 1)
  (2, 2, 2, 2, 2, 2, 2, 2)
+ 
+ julia> a.data[4]
+0.405316936154127
+
+julia> indices = full_indices[4]
+(2, 2, 2, 1, 1, 1, 1, 1)
+
+julia> a[indices...]
+0.405316936154127
 ```
 
 `find_degeneracy(N, dim)` or `find_degeneracy(a::SymmetricTensor)` returns a SymmetricTensor{Int64, N, dim} of which each element specifies the number of index permutations that point to the same element.
@@ -387,8 +395,9 @@ Examples:
 
 ## Performance
 
-`SymmetricTensor`s should be used mainly to save memory as explained above. In exchange, they sacrifice the performance of indexing. However, as we shall see, also many basic operations on symmetric tensors outperform those applied to full arrays, if the dimensionality is sufficiently large. 
+`SymmetricTensor`s should be used mainly to save memory as explained above. In exchange, they sacrifice the performance of indexing. However, as we shall see, also many basic operations on symmetric tensors outperform those applied to full arrays, if their dimensionality is sufficiently large. 
 
+Creation and indexing:
 ```julia
 using BenchmarkTools
 
@@ -408,6 +417,7 @@ julia> @btime $b[53, 23]
   2.200 ns (0 allocations: 0 bytes)
 0.0
 
+
 julia> N = 100;  dim = 4;
 
 julia> a = @btime zeros(ntuple(x->$N, $dim));
@@ -423,6 +433,7 @@ julia> @btime $a[53, 23, 23, 12]
 julia> @btime $b[53, 23, 23, 12]
   3.300 ns (0 allocations: 0 bytes)
 0.0
+
 
 julia> N = 10;  dim = 9;
 
@@ -466,10 +477,15 @@ julia> @btime extrema($a.data)
 
 In the example above, by calling `extrema` on the `data` field, we avoided looping over the vast majority of the elements. 
 
-The functions `find_degeneracy` and `find_full_indices` are useful for implementing such efficient computations on the tensor. 
+The auxiliary functions `find_degeneracy` and `find_full_indices` are sometimes useful for implementing efficient computations on a `SymmetricTensor`. 
 
-Example 1:
+Example 1: find the index of the smallest element in a `SymmetricTensor`
 ```julia
+julia> N = 5;  dim = 9;
+
+julia> a = rand(SymmetricTensor{Float64, N, dim});
+
+julia> b = a .* 1; # full array
 
 julia> @btime findmin($a)
   78.533 ms (0 allocations: 0 bytes)
@@ -490,8 +506,7 @@ julia> full_indices[670]
 (5, 5, 5, 3, 3, 3, 3, 3, 3)
 ```
 
-
-Example 2:
+Example 2: sum of a `SymmetricTensor`
 ```julia
 julia> a = rand(SymmetricTensor{Float64, 10, 8});
 
@@ -517,11 +532,11 @@ Since `full_indices` and `degeneracy` depend only on the shape of `a`, they can 
 
 ## Implementation
 
-A `SymmetricTensor{T, N, dim}` `a` contains two fields. 
+An instance `a` of a `SymmetricTensor{T, N, dim}` contains two fields. 
  - `a.data` is a `Vector{T}` that stores all the elements of the symmetric tensor. Its length is given by `L = binomial(N-1+dim, dim)`, or more conveniently `L = find_symmetric_tensor_size(N, dim)`. 
  - `a.linear_indices` is a `Vector{Vector{Int64}}` that is needed when `a` is indexed. The outer vector has length `length(a.linear_indices)` equal to `dim`. The length of the elements of that vector are equal to `N`. To index a `SymmetricTensor{Float64, 50, 3}` at indices `I = (21, 45, 21)`, first the indices are sorted in descending order. Then, the linear index is found by evaluating `index = (A.linear_indices[1])[45] + (A.linear_indices[2])[21] + (A.linear_indices[3])[21]`. This linear index can now be used to get the value: `val = a.data[index]`.
  
-Methods such as `getindex` and `find_full_indices` for operating with `SymmetricTensors` are implemented using generated functions.
+Many methods for operating with `SymmetricTensors` are implemented using generated functions to provide efficient implementations based on their size.
 
 ## See also
 
