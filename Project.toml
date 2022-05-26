@@ -1,7 +1,7 @@
 name = "PermutationSymmetricTensors"
 uuid = "22e17884-8c1a-4ea8-8b39-5974e24a9d31"
 authors = ["IlianPihlajamaa <73794090+IlianPihlajamaa@users.noreply.github.com>"]
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
