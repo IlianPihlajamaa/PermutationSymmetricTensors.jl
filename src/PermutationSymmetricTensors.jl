@@ -248,9 +248,7 @@ function find_full_indices(N, dim)
 
     Returns an ordered array of tuples of indices (i1, i2, i3, ..., i{dim}) such that 
     i1 >= i2 >= i3 ... >= i{dim}. This can be used to find the cartesian index that 
-    corresponds to a linear index of a SymmetricTensor{T, N, dim}. It will automatically
-    choose an appropriate integer type to minimize the amount of required storage.
-
+    corresponds to a linear index of a SymmetricTensor{T, N, dim}. 
     Example:
     julia> find_full_indices(3, 3)
     10-element Vector{Tuple{Int8, Int8, Int8}}:
