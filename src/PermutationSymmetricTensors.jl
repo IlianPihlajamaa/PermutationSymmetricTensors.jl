@@ -109,7 +109,7 @@ function similar(::SymmetricTensor{T, N, dim}, ::Type{T_new}) where {T_new, T, N
 end
 
 import Base.length
-length(::SymmetricTensor{T, N, dim}) where {T, N, dim} = N^dim > typemax(Int) ? Int128(N)^dim : N^dim
+@generated length(::SymmetricTensor{T, N, dim}) where {T, N, dim} = Int128(N)^dim > typemax(Int) ? :(Int128(N)^dim) : :(N^dim)
 
 
 """
@@ -164,7 +164,7 @@ function getindex(A::SymmetricTensor{T, N, dim}, I::Int64...) where {T, dim, N}
         return :($boundscheck_ex1; $check_ex; $index_ex)
     end
     if dim > 1 && length(I) == 1 
-        if big(N)^dim > typemax(Int64)
+        if big(N)^dim > typemax(Int)
             index_ex = :(@inbounds A[Int128(I[1])])
             return :($boundscheck_ex1; $index_ex)
         else
@@ -216,7 +216,7 @@ function setindex!(A::SymmetricTensor{T, N, dim}, value, I::Int64...) where {T, 
         return :($boundscheck_ex1; $check_ex; $index_ex)
     end
     if dim > 1 && length(I) == 1 
-        if big(N)^dim > typemax(Int64)
+        if big(N)^dim > typemax(Int)
             index_ex = :(@inbounds A[Int128(I[1])] = value)
             return :($boundscheck_ex1; $index_ex)
         else

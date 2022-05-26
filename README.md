@@ -124,6 +124,12 @@ julia> length(d)
 332525673007965087890625
 julia> typeof(ans)
 Int128
+
+julia> d = rand(SymmetricTensor{Float64, 15, 2});
+julia> length(d)
+225
+julia> typeof(ans)
+Int64
 ```
 
 ## Standard use
@@ -197,6 +203,7 @@ julia> a
   95     6  -106
  -57  -106    87
 ```
+As, you can see, mutating one element also mutates all elements that are equivalent under index permutation. 
 
 They can also be iterated over and support most operations that arbitrary `AbstractArray`s do.
 
@@ -265,6 +272,7 @@ julia> [i for i in eachindex(a)]
  CartesianIndex(1, 1, 2, 2)  CartesianIndex(1, 2, 2, 2)
  CartesianIndex(2, 1, 2, 2)  CartesianIndex(2, 2, 2, 2)
 ```
+However, the only functions from `Base` that are explicitly overloaded are `zeros`, `ones`, `rand(!)`, `similar`, `sizeof`, `size`, `length`, `getindex`, and `setindex!`. All other operations shown above fall back to the implementations for `AbstractArray` of which `PermutationSymmetricTensor` is a subtype. Many therefore have highly suboptimal performance. More examples of that are given in the Performance section below.
 
 Currently, broadcasting will always convert a `SymmetricTensor` into a full `N`-dimensional `Array`. For simple broadcasts, such as applying elementwise functions, instead consider broadcasting on the `data`-field, which holds all data that the symmetric tensor contains. 
 
@@ -377,30 +385,142 @@ Examples:
   4  1
 ```
 
-The latter function is useful for efficient implementations of contractions of tensors. Consider for example the total contraction (sum) over all of the indices of an 8-dimensional `SymmetricTensor`.
+## Performance
+
+`PermutationSymmetricTensor`s should be used mainly to save memory as explained above. In exchange, they sacrifice the performance of indexing. However, as we shall see, also many basic operations on symmetric tensors outperform those applied to full arrays, if the dimensionality is sufficiently large. 
 
 ```julia
-julia> a = ones(SymmetricTensor{Float64, 8, 8});
+using BenchmarkTools
 
-julia> degeneracy = find_degeneracy(a);
+julia> N = 100;  dim = 2;
 
-julia> @time sum(a)
-  0.482570 seconds (1 allocation: 16 bytes)
-1.6777216e7
+julia> a = @btime zeros(ntuple(x->N,dim));
+  2.571 μs (2 allocations: 78.17 KiB)
 
-julia> @time sum(a.data .* degeneracy.data) # would be even more efficient with LinearAlgebra.dot...
-  0.000039 seconds (7 allocations: 50.500 KiB)
-1.6777216e7
+julia> b = @btime zeros(SymmetricTensor{Float64, $N, $dim});
+  6.250 μs (7 allocations: 41.45 KiB)
 
-julia> 8^8
-16777216
+julia> @btime $a[53, 23]
+  1.900 ns (0 allocations: 0 bytes)
+0.0
+
+julia> @btime $b[53, 23]
+  2.200 ns (0 allocations: 0 bytes)
+0.0
+
+julia> N = 100;  dim = 4;
+
+julia> a = @btime zeros(ntuple(x->$N, $dim));
+  93.489 ms (4 allocations: 762.94 MiB)
+
+julia> b = @btime zeros(SymmetricTensor{Float64, $N, $dim});
+  4.803 ms (9 allocations: 33.74 MiB)
+
+julia> @btime $a[53, 23, 23, 12]
+  1.900 ns (0 allocations: 0 bytes)
+0.0
+
+julia> @btime $b[53, 23, 23, 12]
+  3.300 ns (0 allocations: 0 bytes)
+0.0
+
+julia> N = 10;  dim = 9;
+
+julia> a = @btime zeros(ntuple(x->$N, $dim));
+  883.687 ms (4 allocations: 7.45 GiB)
+
+julia> b = @btime zeros(SymmetricTensor{Float64, $N, $dim});
+  170.900 μs (15 allocations: 381.67 KiB)
+
+julia> @btime $a[5,2,6,8,5,3,4,5,7]
+  4.400 ns (0 allocations: 0 bytes)
+0.0
+
+julia> @btime $b[5,2,6,8,5,3,4,5,7]
+  32.864 ns (0 allocations: 0 bytes)
+0.0
 ```
+
+Even though indexing into a SymmetricTensor is slower than it is into a standard Array, by abusing the symmetry, many basic operations can be made very efficient by applying them on the `data` field of the tensor, instead of on the tensor itself.
+
+Example:
+```julia
+julia> N = 5;  dim = 9;
+
+julia> a = rand(SymmetricTensor{Float64, N, dim});
+
+julia> b = a .* 1; # full array
+
+julia> @btime extrema($a)
+  72.330 ms (0 allocations: 0 bytes)
+(0.0011042800114182683, 0.9971024600776325)
+
+julia> @btime extrema($b)
+  3.807 ms (0 allocations: 0 bytes)
+(0.0011042800114182683, 0.9971024600776325)
+
+julia> @btime extrema($a.data)
+  1.600 μs (0 allocations: 0 bytes)
+(0.0011042800114182683, 0.9971024600776325)
+```
+
+In the example above, by calling `extrema` on the `data` field, we avoided looping over the vast majority of the elements. 
+
+The functions `find_degeneracy` and `find_full_indices` are useful for implementing such efficient computations on the data of the tensor. 
+
+Example 1:
+```julia
+
+
+julia> @btime findmin($a)
+  78.533 ms (0 allocations: 0 bytes)
+(0.0011042800114182683, CartesianIndex(5, 5, 5, 3, 3, 3, 3, 3, 3))
+
+julia> @btime findmin($b)
+  14.663 ms (0 allocations: 0 bytes)
+(0.0011042800114182683, CartesianIndex(5, 5, 5, 3, 3, 3, 3, 3, 3))
+
+julia> full_indices = @btime find_full_indices(a);
+  10.500 μs (6 allocations: 97.00 KiB)
+
+julia> @btime findmin($a.data)
+  1.180 μs (0 allocations: 0 bytes)
+(0.0011042800114182683, 670)
+
+julia> full_indices[670]
+(5, 5, 5, 3, 3, 3, 3, 3, 3)
+```
+
+
+Example 2:
+```julia
+julia> a = rand(SymmetricTensor{Float64, 10, 8});
+
+julia> b = a .* 1; # full array
+
+julia> @btime sum($a)
+  2.342 s (0 allocations: 0 bytes)
+5.022884033216443e7
+
+julia> @btime sum($b)
+  25.777 ms (0 allocations: 0 bytes)
+5.022884033248687e7
+
+julia> degeneracy = @btime find_degeneracy($a);
+  7.892 ms (193871 allocations: 4.42 MiB)
+
+julia> @btime sum($a.data .* $degeneracy.data) # would be even more efficient with LinearAlgebra.dot...
+  13.900 μs (2 allocations: 189.98 KiB)
+5.022884033248686e7
+```
+
+Since `full_indices` and `degeneracy` depends only on the shape of `a`, they can often be precomputed for better performance.
 
 ## Implementation
 
 A `SymmetricTensor{T, N, dim}` `a` contains two fields. 
  - `a.data` is a `Vector{T}` that stores all the elements of the symmetric tensor. Its length is given by `L = binomial(N-1+dim, dim)`, or more conveniently `L = find_symmetric_tensor_size(N, dim)`. 
- - `a.linear_indices` is a `Vector{Vector{Int64}}` that is needed when `a` is indexed. The outer vector has length `length(a.linear_indices)` equal to `dim`. The length elements of that vector are equal to `N`. To index a `SymmetricTensor{Float64, 50, 3}` at indices `I = (21, 45, 21)`, first the indices are sorted in descending order, which is stored in a new tuple `I2`. Then the linear index is found by evaluating `index = (A.linear_indices[1])[45] + (A.linear_indices[2])[21] + (A.linear_indices[3])[21]`. This linear index can then be used to get the value: `val = a.data[index]`.
+ - `a.linear_indices` is a `Vector{Vector{Int64}}` that is needed when `a` is indexed. The outer vector has length `length(a.linear_indices)` equal to `dim`. The length of the elements of that vector are equal to `N`. To index a `SymmetricTensor{Float64, 50, 3}` at indices `I = (21, 45, 21)`, first the indices are sorted in descending order, which is stored in a new tuple `I2`. Then the linear index is found by evaluating `index = (A.linear_indices[1])[45] + (A.linear_indices[2])[21] + (A.linear_indices[3])[21]`. This linear index can then be used to get the value: `val = a.data[index]`.
  
 Methods such as `getindex` and `find_full_indices` for operating with `SymmetricTensors` are implemented using generated functions.
 

@@ -17,7 +17,7 @@ println("Testing PermutationSymmetricTensors")
                     @test sizeof(a) > sizeof(a.data)
                     @test ndims(a) == dim
                     @test axes(a,1) == Base.OneTo(N)
-                    b = similar(Bool, a)
+                    b = similar(a, Bool)
                     b = similar(a)
                     b.data .= zero(T)
                     @test axes(a) == axes(b)
