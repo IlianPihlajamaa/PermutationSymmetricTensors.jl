@@ -55,9 +55,9 @@ julia> d = similar(c)
  0  0
 
 julia> e = similar(d, Char)
-2×2 Matrix{Char}:
- '\0'  '\x11\xa8\x4d\xa1'
- '\0'  '\0'
+2×2 SymmetricTensor{Char, 2, 2}:
+ '\0'                '\x00\x00\x00\x01'
+ '\x00\x00\x00\x01'  '\x00\x00\x00\x01'
 ```
 Since the tensor is parametrized with its size, it is not necessary to provide any other arguments to `zeros`, `ones`, or `rand`. If the standard library `Random` is imported, `rand!(a)` will also work.
 
