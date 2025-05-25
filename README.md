@@ -10,6 +10,22 @@ PermutationSymmetricTensors.jl provides an efficient framework for the use of mu
 
 This package exports basic constructors of `SymmetricTensor`s, and a few convenience functions for working with them. The main advantage of using a `SymmetricTensor` is that it requires much less memory to store than the full array would. 
 
+## Documentation
+
+The full documentation for `PermutationSymmetricTensors.jl` is built using [Documenter.jl](https://github.com/JuliaDocs/Documenter.jl) and is hosted on GitHub Pages.
+
+You can find the latest stable documentation at [https://IlianPihlajamaa.github.io/PermutationSymmetricTensors.jl/stable/](https://IlianPihlajamaa.github.io/PermutationSymmetricTensors.jl/stable/).
+
+To build the documentation locally, navigate to the `docs` directory and run:
+```julia
+julia --project=. make.jl
+```
+This will generate the documentation in the `docs/build/` directory. You can then open `docs/build/index.html` in your web browser to view it.
+It is recommended to instantiate the project environment within the `docs` directory if you haven't already, to ensure all necessary dependencies for building the documentation are available:
+```julia
+julia --project=. -e 'using Pkg; Pkg.instantiate()'
+```
+
 ## Construction
 
 A `SymmetricTensor` can conveniently be constructed using `zeros`, `ones`, `similar` and `rand`. 
