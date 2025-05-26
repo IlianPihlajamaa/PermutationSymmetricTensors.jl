@@ -6,7 +6,7 @@ CurrentModule = PermutationSymmetricTensors
 
 ## Example Usage
 
-This section provides practical examples of how to use `PermutationSymmetricTensors.jl`.
+This section provides practical examples of how to use the package `PermutationSymmetricTensors.jl`.
 
 First, let's bring the module into scope:
 ```julia
