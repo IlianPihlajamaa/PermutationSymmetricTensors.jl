@@ -32,8 +32,8 @@ The tensor is symmetric under permutation of its indices.
   for efficient indexing.
 """
 struct SymmetricTensor{T, N, dim} <: AbstractArray{T, dim}
-    data::Array{T, 1} # TODO: Consider changing to Vector{T} for consistency with docstring
-    linear_indices::Array{Array{Int64, 1}, 1} # TODO: Consider Vector{Vector{Int64}}
+    data::Vector{T}
+    linear_indices::Vector{Vector{Int64}} 
 end
 
 """
@@ -487,7 +487,7 @@ The resulting collection of vectors is stored in the `linear_indices` field of a
   `find_linear_index_array(N, Val(k))` for `k` in `1:dim`.
 """
 function find_linear_indices(::Val{N}, ::Val{dim}) where {N, dim}
-    contributions = Array{Int64, 1}[] # TODO: Consider Vector{Vector{Int64}}
+    contributions = Vector{Vector{Int64}}()
     i = 1
     while i <= dim
         push!(contributions, find_linear_index_array(N, Val(i)))
