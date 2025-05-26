@@ -1,6 +1,4 @@
 """
-    PermutationSymmetricTensors
-
 This module provides the `SymmetricTensor` type, representing a tensor whose elements are symmetric under any permutation of their indices.
 It allows for efficient storage and manipulation of such tensors.
 
@@ -68,6 +66,7 @@ function zeros(::Type{SymmetricTensor{T, N, dim}}) where {N, dim, T}
 end
 
 import Base.rand, Random.rand!
+
 function rand(::Type{SymmetricTensor{T, N, dim}}) where {N, dim, T}
     @assert typeof(N) == typeof(dim) == Int
     return SymmetricTensor(rand(T, find_symmetric_tensor_size(N, dim)), Val(N), Val(dim))
@@ -127,22 +126,22 @@ julia> ts[2,2] # Will be a random integer between 1 and 10
 """
 function rand!(A::SymmetricTensor{T, N, dim}) where {N, dim, T}
     rand!(A.data)
-    return nothing # TODO: Consider returning A for consistency with Base.rand!
+    return A
 end
 
 function rand!(rng::AbstractRNG, A::SymmetricTensor{T, N, dim}) where {N, dim, T}
     rand!(rng, A.data)
-    return nothing
+    return A
 end
 
 function rand!(A::SymmetricTensor{T, N, dim}, range::AbstractArray) where {N, dim, T}
     rand!(A.data, range)
-    return nothing
+    return A
 end
 
 function rand!(rng::AbstractRNG, A::SymmetricTensor{T, N, dim}, range::AbstractArray) where {N, dim, T}
     rand!(rng, A.data, range)
-    return nothing # TODO: Consider returning A
+    return A
 end
 
 import Base.ones

@@ -9,7 +9,8 @@ makedocs(
     ),
     pages=[
         "Home" => "index.md",
-    ]
+    ],
+    checkdocs = :exported,
 )
 
 # Documenter can also automatically deploy documentation to gh-pages.

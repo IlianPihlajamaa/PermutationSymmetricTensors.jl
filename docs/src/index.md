@@ -3,11 +3,6 @@
 @meta
 CurrentModule = PermutationSymmetricTensors
 
-## Overview
-
-```@docs
-PermutationSymmetricTensors
-```
 
 ## Example Usage
 
@@ -159,50 +154,6 @@ println("\\n")
 
 This section highlights the core functionalities and types provided by the `PermutationSymmetricTensors.jl` package, serving as a quick reference to its main features.
 
-### Main Type
-
-The central type provided by this package is `SymmetricTensor`.
-
-```@docs
-SymmetricTensor
-```
-
-### Utility Functions
-
-These functions provide information about symmetric tensors or help in their construction and analysis.
-
-```@docs
-find_symmetric_tensor_size
-find_degeneracy
-find_full_indices
-```
-
-### Core Methods
-
-`SymmetricTensor` instances interact with several standard Julia functions, and also have specialized methods.
-
-#### Indexing
-
-Elements of a `SymmetricTensor` can be accessed using standard `getindex` and `setindex!` operations. Due to the tensor's symmetry, the order of indices does not matter (e.g., `A[i,j,k]` is equivalent to `A[k,j,i]`). Linear indexing is also supported.
-
-```@docs
-getindex(A::SymmetricTensor, I::Int...)
-setindex!(A::SymmetricTensor, value, I::Int...)
-```
-
-#### Construction and Randomization
-
-Standard Julia functions for array construction are specialized for `SymmetricTensor`:
-- `zeros(SymmetricTensor{T,N,dim})`: Creates a tensor filled with zeros.
-- `ones(SymmetricTensor{T,N,dim})`: Creates a tensor filled with ones.
-- `rand(SymmetricTensor{T,N,dim})`: Creates a tensor filled with random values (typically in `[0,1)` for floating-point types).
-- `rand!(A::SymmetricTensor, [rng], [values])`: Fills an existing tensor `A` with random values.
-
-*(Detailed docstrings for `zeros`, `ones`, and `rand` methods specialized for `SymmetricTensor` will be available in the Full API Reference below if they have been associated with these Base functions via docstrings in the source code. The `rand!` function is exported directly by this module and its docstring is shown here.)*
-
-```@docs
-rand!(A::SymmetricTensor, ::Any...)
-```
 
 ## Full API Reference
 
