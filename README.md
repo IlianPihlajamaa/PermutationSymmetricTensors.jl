@@ -1,8 +1,8 @@
 # PermutationSymmetricTensors.jl
 
 [![Build status (Github Actions)](https://github.com/IlianPihlajamaa/PermutationSymmetricTensors.jl/workflows/CI/badge.svg)](https://github.com/IlianPihlajamaa/PermutationSymmetricTensors.jl/actions)
-[![codecov](https://codecov.io/github/IlianPihlajamaa/PermutationSymmetricTensors.jl/graph/badge.svg?token=Zec4cEA2MG)](https://codecov.io/github/IlianPihlajamaa/PermutationSymmetricTensors.jl)
 
+[![codecov](https://codecov.io/github/IlianPihlajamaa/PermutationSymmetricTensors.jl/branch/main/graph/badge.svg?token=Zec4cEA2MG)](https://codecov.io/github/IlianPihlajamaa/PermutationSymmetricTensors.jl)
 
 
 
