@@ -1,10 +1,9 @@
 # PermutationSymmetricTensors.jl
 
 [![Build status (Github Actions)](https://github.com/IlianPihlajamaa/PermutationSymmetricTensors.jl/workflows/CI/badge.svg)](https://github.com/IlianPihlajamaa/PermutationSymmetricTensors.jl/actions)
-
 [![codecov](https://codecov.io/github/IlianPihlajamaa/PermutationSymmetricTensors.jl/branch/main/graph/badge.svg?token=Zec4cEA2MG)](https://codecov.io/github/IlianPihlajamaa/PermutationSymmetricTensors.jl)
-
-
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://IlianPihlajamaa.github.io/PermutationSymmatricTensors.jl/stable)
+[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://IlianPihlajamaa.github.io/PermutationSymmatricTensors.jl/dev)
 
 
 PermutationSymmetricTensors.jl provides an efficient framework for the use of multidimensional arrays that are symmetric under any permutation of their indices, implemented in pure Julia. Such symmetric tensors are implemented in the `SymmetricTensor{T, N, dim}` type, where `T` is the element type, `dim` is the number of indices required to index into the tensor, and `N` is the maximal index for each dimension. For example, to index into a `SymmetricTensor{ComplexF64, 20, 6}`, you need 6 indices between 1 and 20. Note that we use the computer science definition of a tensor instead of the mathematical one: in the following, a tensor is just a multi-dimensional container of elements of some type `T`. As described above, we refer to the number of indices as the dimension of this tensor, because that is semantically consistent with the definition of a multidimensional array. In mathematics and physics texts, what we call dimension is usually referred to as the order, degree or rank of a tensor. 
