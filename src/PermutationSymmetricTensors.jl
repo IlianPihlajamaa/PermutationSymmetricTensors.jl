@@ -19,7 +19,7 @@ export rand!
 using  StaticArrays, Random
 
 """
-SymmetricTensor{T, N, dim} <: AbstractArray{T, dim} 
+`SymmetricTensor{T, N, dim} <: AbstractArray{T, dim}`
 
 A tensor of `dim` dimensions, where each dimension has `N` elements of type `T`.
 The tensor is symmetric under permutation of its indices.
@@ -37,18 +37,19 @@ struct SymmetricTensor{T, N, dim} <: AbstractArray{T, dim}
 end
 
 """
-SymmetricTensor(data::Array{T, 1}, ::Val{N}, ::Val{dim}) where {T, N, dim}
+`SymmetricTensor(data::Array{T, 1}, ::Val{N}, ::Val{dim}) where {T, N, dim}`
 
 Low level constructor for the SymmetricTensor type. 
 
-    Example:
-
-    N = 10
-    dim = 3
-    Ndata = find_symmetric_tensor_size(N, dim)
-    T = Float64
-    data = rand(T, Ndata)
-    SymmetricTensor(data, Val(N), Val(dim))
+Example:
+```julia
+N = 10
+dim = 3
+Ndata = find_symmetric_tensor_size(N, dim)
+T = Float64
+data = rand(T, Ndata)
+SymmetricTensor(data, Val(N), Val(dim))
+```
 """
 function SymmetricTensor(data::Array{T, 1}, ::Val{N}, ::Val{dim}) where {T, N, dim}
     @assert typeof(N) == typeof(dim) == Int
@@ -88,7 +89,7 @@ function rand(range::AbstractArray, ::Type{SymmetricTensor{T, N, dim}}) where {N
 end
 
 """
-    rand!(A::SymmetricTensor, [rng::AbstractRNG], [values])
+`rand!(A::SymmetricTensor, [rng::AbstractRNG], [values])`
 
 Fill the symmetric tensor `A` with random values.
 
@@ -170,20 +171,22 @@ import Base.length
 
 
 """
-function find_symmetric_tensor_size(N, dim)
+`function find_symmetric_tensor_size(N, dim)`
 
-    Returns the number of elements of a symmetric tensor of dimension dim of N elements in each dimension. 
-    The results is given by binomial(N-1+dim, dim).
+Returns the number of elements of a symmetric tensor of dimension dim of N elements in each dimension. 
+The results is given by binomial(N-1+dim, dim).
 
-    Example:
-    julia> find_symmetric_tensor_size(20, 6)
-    177100
+Example:
+```julia`
+julia> find_symmetric_tensor_size(20, 6)
+177100
+```
 """
 find_symmetric_tensor_size(N, dim) = binomial(N-1+dim, dim)
 
 
 """
-    check_correct_size(num_elements::Int, N::Int, dim::Int) -> Bool
+`check_correct_size(num_elements::Int, N::Int, dim::Int) -> Bool`
 
 Internal helper function to verify if `num_elements` is the correct count
 for a `SymmetricTensor` with dimension `dim` and size `N` for each dimension.
@@ -203,7 +206,7 @@ end
 
 import Base.getindex
 """
-    getindex(A::SymmetricTensor{T, N, dim}, I::Int...) -> T
+`getindex(A::SymmetricTensor{T, N, dim}, I::Int...) -> T`
 
 Retrieve the element at the specified indices `I` from the symmetric tensor `A`.
 The indices `I` can be provided in any order; due to the tensor's symmetry,
@@ -273,7 +276,7 @@ end
 import Base.setindex!
 
 """
-    setindex!(A::SymmetricTensor{T, N, dim}, value, I::Int...) -> typeof(value)
+`setindex!(A::SymmetricTensor{T, N, dim}, value, I::Int...) -> typeof(value)`
 
 Set the element at the specified indices `I` in the symmetric tensor `A` to `value`.
 The indices `I` can be provided in any order; due to the tensor's symmetry,
@@ -346,37 +349,40 @@ function find_full_indices(N, dim)
 end
 
 """
-function find_full_indices(N, dim)
+`function find_full_indices(N, dim)`
 
-    Returns an ordered array of tuples of indices (i1, i2, i3, ..., i{dim}) such that 
-    i1 >= i2 >= i3 ... >= i{dim}. This can be used to find the cartesian index that 
-    corresponds to a linear index of a SymmetricTensor{T, N, dim}. 
-    Example:
-    julia> find_full_indices(3, 3)
-    10-element Vector{Tuple{Int8, Int8, Int8}}:
-    (1, 1, 1)
-    (2, 1, 1)
-    (3, 1, 1)
-    (2, 2, 1)
-    (3, 2, 1)
-    (3, 3, 1)
-    (2, 2, 2)
-    (3, 2, 2)
-    (3, 3, 2)
-    (3, 3, 3)
-
-    It is implemented with a generated function, for dim = 3, the following code will be executed:
-    function _find_full_indices(N, Val(3))
-        full_indices = NTuple{3, Int16}[]
-        for i3 = 1:N
-            for i2 = i3:N
-                for i1 = i2:N
-                    push!(full_indices, ((i1..., i2)..., i3))
-                end
+Returns an ordered array of tuples of indices `(i1, i2, i3, ..., i{dim})` such that 
+`i1 >= i2 >= i3 ... >= i{dim}`. This can be used to find the cartesian index that 
+corresponds to a linear index of a `SymmetricTensor{T, N, dim}`. 
+Example:
+```julia
+julia> find_full_indices(3, 3)
+10-element Vector{Tuple{Int8, Int8, Int8}}:
+(1, 1, 1)
+(2, 1, 1)
+(3, 1, 1)
+(2, 2, 1)
+(3, 2, 1)
+(3, 3, 1)
+(2, 2, 2)
+(3, 2, 2)
+(3, 3, 2)
+(3, 3, 3)
+```
+It is implemented with a generated function, for dim = 3, the following code will be executed:
+```julia
+function _find_full_indices(N, Val(3))
+    full_indices = NTuple{3, Int16}[]
+    for i3 = 1:N
+        for i2 = i3:N
+            for i1 = i2:N
+                push!(full_indices, ((i1..., i2)..., i3))
             end
         end
-        full_indices
     end
+    full_indices
+end
+```
 """
 @generated function find_full_indices(T, N, ::Val{dim}) where {dim}
     if dim == 1
@@ -399,7 +405,7 @@ function find_full_indices(N, dim)
 end
 
 """
-    find_linear_index_array(N::Int, ::Val{dim}) -> Vector{Int64}
+`find_linear_index_array(N::Int, ::Val{dim}) -> Vector{Int64}`
 
 Internal `@generated` function to compute a vector of index contributions for a specific
 dimension, used in calculating the linear index into the `data` array of a `SymmetricTensor`.
@@ -416,26 +422,27 @@ The actual generated code efficiently calculates these contributions. For exampl
 for `dim = 3`, it generates:
 ```julia
 function find_linear_index_array(N::Int, ::Val{3})
-        idim_contribution_array = zeros(Int64, N)
-        contribution = 0
-        count = 0
-        firstcount = 0
-        for i3 = 1:N
-            for i2 = i3:N
-                for i1 = i2:N
-                    count += 1
-                    if ((i1 == i2) && i2 == i3)
-                        if i3 == 1
-                            firstcount = count
-                        end
-                        contribution = count - firstcount
-                        idim_contribution_array[i3] = contribution
+    idim_contribution_array = zeros(Int64, N)
+    contribution = 0
+    count = 0
+    firstcount = 0
+    for i3 = 1:N
+        for i2 = i3:N
+            for i1 = i2:N
+                count += 1
+                if ((i1 == i2) && i2 == i3)
+                    if i3 == 1
+                        firstcount = count
                     end
+                    contribution = count - firstcount
+                    idim_contribution_array[i3] = contribution
                 end
             end
         end
-        idim_contribution_array
     end
+    idim_contribution_array
+end
+```
 """
 @generated function find_linear_index_array(N::Int, ::Val{dim}) where dim
     if dim == 1
@@ -462,7 +469,7 @@ function find_linear_index_array(N::Int, ::Val{3})
 end
 
 """
-    find_linear_indices(::Val{N}, ::Val{dim}) -> Vector{Vector{Int64}}
+`find_linear_indices(::Val{N}, ::Val{dim}) -> Vector{Vector{Int64}}`
 
 Internal function to compute all necessary linear index contribution vectors
 for a `SymmetricTensor` of size `N` and dimension `dim`.
@@ -491,7 +498,7 @@ end
 
 
 """
-    find_N_repetitions_sorted!(reps::Vector{<:Integer}, tup::NTuple)
+`find_N_repetitions_sorted!(reps::Vector{<:Integer}, tup::NTuple)`
 
 Internal helper function to count repetitions of elements in a **sorted** tuple.
 It updates the `reps` vector such that `reps[i]` stores the count of distinct
@@ -541,9 +548,11 @@ find_degeneracy(N::Int, dim::Int) = find_degeneracy(N, dim, find_full_indices(N,
 find_degeneracy(::SymmetricTensor{T, N, dim}) where {dim, N, T} = find_degeneracy(N, dim, find_full_indices(N, dim))
 
 """
+ ```
 function find_degeneracy(N::Int, dim::Int)
 function find_degeneracy(A::SymmetricTensor{T, N, dim}) where {T, N, dim}
 function find_degeneracy(N, dim, full_indices::Vector{<:NTuple{dim, Any}})
+```
 
 Returns a `SymmetricTensor{Int64, N, dim}` where each element `d[i,j,...]`
 contains the number of distinct permutations of the indices `(i,j,...)` that map

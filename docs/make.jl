@@ -2,15 +2,9 @@ using Documenter
 using PermutationSymmetricTensors
 
 makedocs(
-    sitename = "PermutationSymmetricTensors.jl",
-    modules = [PermutationSymmetricTensors],
-    format = Documenter.HTML(
-        prettyurls = get(ENV, "CI", nothing) == "true"
-    ),
-    pages=[
-        "Home" => "index.md",
-    ],
-    checkdocs = :exported,
+    sitename = "PermutationSymmetricTensors",
+    format = Documenter.HTML(),
+    modules = [PermutationSymmetricTensors]
 )
 
 # Documenter can also automatically deploy documentation to gh-pages.

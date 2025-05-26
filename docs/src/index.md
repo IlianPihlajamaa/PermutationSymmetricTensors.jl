@@ -1,167 +1,188 @@
+```@meta
+CurrentModule = PermutationSymmetricTensors
+```
+
 # PermutationSymmetricTensors.jl
 
-@meta
-CurrentModule = PermutationSymmetricTensors
+`PermutationSymmetricTensors.jl` provides efficient tools for working with multidimensional arrays that are symmetric under any permutation of their indices.
 
+This page provides practical examples, usage tips, and performance insights.
 
-## Example Usage
+---
 
-This section provides practical examples of how to use the package `PermutationSymmetricTensors.jl`.
+## Getting Started
 
-First, let's bring the module into scope:
-```julia
+```@example 1
 using PermutationSymmetricTensors
-using Random # For seeding, if desired
+using Random # For reproducibility if needed
 ```
 
-### Creating a `SymmetricTensor`
+---
 
-There are several ways to construct a `SymmetricTensor`.
+## Creating Symmetric Tensors
 
-**1. Using the low-level constructor with explicit data:**
-```julia
-# Define dimensions and size
-N = 3 # Size of each dimension (e.g., indices from 1 to 3)
-dim = 2 # Number of dimensions
+### 1. Low-Level Constructor
 
-# Calculate the required number of unique elements
-len_data = find_symmetric_tensor_size(N, dim) # For N=3, dim=2, this is 6
+```@example 1
+N = 3       # Size of each axis
+dim = 2     # Number of dimensions
+len = find_symmetric_tensor_size(N, dim)  # e.g., 6 for N=3, dim=2
+data = rand(Float64, len)
 
-# Create some data (e.g., random)
-Random.seed!(123) # for reproducibility
-data_vector = rand(Float64, len_data)
-
-# Construct the tensor
-tensor_a = SymmetricTensor(data_vector, Val(N), Val(dim))
-println("Tensor A (from data_vector):")
-display(tensor_a)
-println("\\n")
+tensor_a = SymmetricTensor(data, Val(N), Val(dim))
 ```
 
-**2. Using `rand` for random initialization:**
-```julia
-# Create a 2x2x2 tensor with Float64 elements, random values in [0,1)
-tensor_b = rand(SymmetricTensor{Float64, 2, 3})
-println("Tensor B (randomly initialized):")
-display(tensor_b)
-println("\\n")
+### 2. Built-In Constructors
+
+```@example 1
+tensor_b = rand(SymmetricTensor{Float64, 3, 3})         # Random values
+```
+```@example 1
+tensor_c = zeros(SymmetricTensor{Int, 4, 2})            # Zeros
+```
+```@example 1
+tensor_d = ones(SymmetricTensor{Bool, 2, 4})            # Ones
+```
+```@example 1
+tensor_e = similar(tensor_c)                            # Uninitialized with same type
+```
+```@example 1
+tensor_f = similar(tensor_d, Char)                      # Uninitialized with new type
 ```
 
-**3. Using `zeros` for zero initialization:**
-```julia
-# Create a 2x2 tensor with Int elements, initialized to zero
-tensor_c = zeros(SymmetricTensor{Int, 2, 2})
-println("Tensor C (zero-initialized):")
-display(tensor_c)
-println("\\n")
+---
+
+## Indexing and Symmetry
+
+Indexing into a symmetric tensor is invariant under permutations of the indices:
+
+```@example 1
+A = rand(SymmetricTensor{Float64, 2, 3})
+
+A[1, 2, 1] == A[2, 1, 1] == A[1, 1, 2]  # All access the same element
+
+A[1, 2, 1] = 42.0
+
+@assert A[2, 1, 1] == 42.0
 ```
 
-### Getting and Setting Elements
+You can also slice and broadcast:
 
-Elements are accessed using standard indexing. Due to symmetry, the order of indices does not matter.
-
-```julia
-# Using tensor_b from above (2x2x2 Float64 tensor)
-println("Original tensor_b[1,2,1]: ", tensor_b[1,2,1])
-
-# Set an element
-tensor_b[1,2,1] = 0.5
-println("After tensor_b[1,2,1] = 0.5:")
-println("tensor_b[1,2,1]: ", tensor_b[1,2,1])
-println("tensor_b[2,1,1] (should be same): ", tensor_b[2,1,1]) # Permuted index
-println("tensor_b[1,1,2] (should be same): ", tensor_b[1,1,2]) # Permuted index
-println("\\n")
-
-# Modifying tensor_c
-tensor_c[1,2] = 5
-println("Tensor C after tensor_c[1,2] = 5:")
-display(tensor_c)
-println("tensor_c[2,1] (should be same): ", tensor_c[2,1])
-println("\\n")
+```@example 1
+A[:, 1, 1] .= 0
 ```
 
-### Using Utility Functions
+---
 
-**1. `find_symmetric_tensor_size`:**
-Calculate the number of unique elements required for a symmetric tensor.
-```julia
-N_val = 4
-dim_val = 3
-num_elements = find_symmetric_tensor_size(N_val, dim_val)
-println("Number of unique elements for a $N_val^$dim_val symmetric tensor: ", num_elements) # Binomial(4+3-1, 3) = 20
-println("\\n")
+## Utility Functions
+
+### `find_symmetric_tensor_size`
+
+Returns the number of unique values stored in a symmetric tensor of size `N` and dimension `dim`.
+
+```@example 1
+find_symmetric_tensor_size(3, 3)  # Returns 10
 ```
 
-**2. `find_degeneracy`:**
-Get a tensor where each element shows how many permutations of its indices map to it.
-```julia
-# Using tensor_c (2x2 Int tensor)
-degeneracy_c = find_degeneracy(tensor_c)
-println("Degeneracy tensor for Tensor C (2x2):")
-display(degeneracy_c)
-# For a 2x2 tensor:
-# d[1,1] = 1 (only 1,1)
-# d[1,2] = 2 (1,2 and 2,1)
-# d[2,1] is same as d[1,2]
-# d[2,2] = 1 (only 2,2)
-println("\\n")
+Useful for constructing from raw data:
 
-degeneracy_b = find_degeneracy(SymmetricTensor{Int, 2, 3}) # For a generic 2x2x2 shape
-println("Degeneracy for a 2x2x2 tensor shape:")
-display(degeneracy_b)
-# For a 2x2x2 tensor:
-# d[1,1,1] = 1
-# d[1,1,2] = 3 (112, 121, 211)
-# d[1,2,2] = 3 (122, 212, 221)
-# d[2,2,2] = 1
-println("\\n")
-
+```@example 1
+data = rand(Float64, find_symmetric_tensor_size(4, 3))
+T = SymmetricTensor(data, Val(4), Val(3));
 ```
 
-**3. `find_full_indices`:**
-Get the list of unique Cartesian indices corresponding to the linear storage.
-The indices are sorted such that `i1 >= i2 >= ... >= idim`.
-```julia
-# For a 3x3 tensor (N=3, dim=2)
-full_idx_3_2 = find_full_indices(3, 2)
-println("Full indices for N=3, dim=2 (sorted i1>=i2):")
-for (i, idx) in enumerate(full_idx_3_2)
+---
+
+### `find_degeneracy`
+
+Returns a tensor indicating how many permutations of the indices point to each element.
+
+```@example 1
+A = rand(SymmetricTensor{Float64, 2, 3})
+D = find_degeneracy(A)
+
+@show D[1, 1, 2] 
+```
+
+---
+
+### `find_full_indices`
+
+Gives you the sorted list of canonical index tuples that correspond to the linear storage layout.
+
+```@example 1
+inds = find_full_indices(3, 2)
+for (i, idx) in enumerate(inds)
     println("Linear index $i maps to Cartesian index $idx")
 end
-# Expected order for N=3, dim=2: (1,1), (2,1), (2,2), (3,1), (3,2), (3,3)
-# Let's re-verify against the code's logic:
-# The @generated function for find_full_indices (T, N, ::Val{dim}) has nested loops:
-# for i_dim = start_outer:N ... for i_1 = start_inner:N.
-# For dim=2, (i1, i2): for i2 = 1:N; for i1 = i2:N; push!((i1,i2)).
-# So for N=3, dim=2:
-# i2=1: i1=1 -> (1,1)
-#       i1=2 -> (2,1)
-#       i1=3 -> (3,1)
-# i2=2: i1=2 -> (2,2)
-#       i1=3 -> (3,2)
-# i2=3: i1=3 -> (3,3)
-# Output: (1,1), (2,1), (3,1), (2,2), (3,2), (3,3)
-println("\\n")
-
-# Example: Relating to tensor_a (N=3, dim=2)
-println("tensor_a was created with N=3, dim=2. Its data has length: ", length(tensor_a.data))
-println("The first element tensor_a.data[1] corresponds to Cartesian index: ", full_idx_3_2[1]) # Should be (1,1)
-println("The fourth element tensor_a.data[4] corresponds to Cartesian index: ", full_idx_3_2[4]) # Should be (2,2)
-println("\\n")
 ```
 
-## Public API
+---
 
-This section highlights the core functionalities and types provided by the `PermutationSymmetricTensors.jl` package, serving as a quick reference to its main features.
+## Performance Tips
 
+### Memory Savings
+
+```@example 1
+A = rand(SymmetricTensor{Float64, 14, 16})
+
+println("Compressed size: ", Base.format_bytes(Base.summarysize(A)))
+println("Full array would require: ", round(Float64(big(14)^16 * 8)/2^30, digits=2), " GiB")
+```
+
+### Efficient Aggregations
+
+Use the internal `.data` field with the degeneracy weights:
+
+```@example 1
+deg = find_degeneracy(A)
+sum(A.data .* deg.data)  # Correct full sum over symmetric elements
+```
+
+### Broadcasting Performance
+
+Avoid converting to full arrays unintentionally:
+
+```@example 1
+A.data .= log.(A.data .+ 1e-8)  # Efficient
+
+#B = A .* 0  # WARNING: returns a full Array{Float64, N}. Will overflow RAM
+```
+
+---
+
+## Example: Exploring Internal Representation
+
+```@example 1
+A = rand(SymmetricTensor{Float64, 3, 3})
+deg = find_degeneracy(A)
+inds = find_full_indices(A)
+
+for i in eachindex(A.data)
+    println("data[$i] = ", A.data[i], ", index: ", inds[i], ", deg: ", deg[inds[i]...])
+end
+```
+
+---
+
+## Summary of Public API
+
+| Feature                          | Description                                               |
+|----------------------------------|-----------------------------------------------------------|
+| `SymmetricTensor{T, N, dim}`     | Core symmetric tensor type                               |
+| `find_symmetric_tensor_size`     | Number of stored unique elements                         |
+| `find_degeneracy`                | Permutation multiplicity tensor                          |
+| `find_full_indices`              | List of canonical index tuples                           |
+| `zeros`, `ones`, `rand`, `similar` | Tensor constructors                                      |
+| `getindex`, `setindex!`          | Symmetric indexing and mutation                          |
+
+---
 
 ## Full API Reference
 
-A complete list of all exported names from the `PermutationSymmetricTensors` module. This provides a comprehensive overview of all functionalities available to users.
+For a complete overview of all exported functions and types:
 
 ```@autodocs
 Modules = [PermutationSymmetricTensors]
 Order   = [:module, :constant, :type, :macro, :function]
-Public  = true
-Private = false
 ```
