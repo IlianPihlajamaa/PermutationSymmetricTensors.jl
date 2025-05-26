@@ -14,7 +14,7 @@ This package exports basic constructors of `SymmetricTensor`s, and a few conveni
 ## Documentation
 
 You can find the latest stable documentation at [https://IlianPihlajamaa.github.io/PermutationSymmetricTensors.jl/stable/](https://IlianPihlajamaa.github.io/PermutationSymmetricTensors.jl/stable/).
-
+You can find the latest development documentation at [https://IlianPihlajamaa.github.io/PermutationSymmetricTensors.jl/dev/](https://IlianPihlajamaa.github.io/PermutationSymmetricTensors.jl/dev/).
 
 
 ## Construction
