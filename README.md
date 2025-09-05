@@ -2,7 +2,6 @@
 
 [![Build status (Github Actions)](https://github.com/IlianPihlajamaa/PermutationSymmetricTensors.jl/workflows/CI/badge.svg)](https://github.com/IlianPihlajamaa/PermutationSymmetricTensors.jl/actions)
 [![codecov](https://codecov.io/github/IlianPihlajamaa/PermutationSymmetricTensors.jl/branch/main/graph/badge.svg?token=Zec4cEA2MG)](https://codecov.io/github/IlianPihlajamaa/PermutationSymmetricTensors.jl)
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://IlianPihlajamaa.github.io/PermutationSymmatricTensors.jl/stable)
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://IlianPihlajamaa.github.io/PermutationSymmatricTensors.jl/dev)
 
 
@@ -12,8 +11,7 @@ This package exports basic constructors of `SymmetricTensor`s, and a few conveni
 
 ## Documentation
 
-You can find the latest stable documentation at [https://IlianPihlajamaa.github.io/PermutationSymmetricTensors.jl/stable/](https://IlianPihlajamaa.github.io/PermutationSymmetricTensors.jl/stable/).
-You can find the latest development documentation at [https://IlianPihlajamaa.github.io/PermutationSymmetricTensors.jl/dev/](https://IlianPihlajamaa.github.io/PermutationSymmetricTensors.jl/dev/).
+You can find the latest documentation at [https://IlianPihlajamaa.github.io/PermutationSymmetricTensors.jl/dev/](https://IlianPihlajamaa.github.io/PermutationSymmetricTensors.jl/dev/).
 
 
 ## Construction
